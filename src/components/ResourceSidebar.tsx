@@ -1,4 +1,5 @@
 import { useGameStore } from '../hooks/useGameStore';
+import { getDifficultyConfig } from '../types/game';
 import Tooltip from './Tooltip';
 import ColossusPanel from './ColossusPanel';
 import CongressPanel from './CongressPanel';
@@ -29,6 +30,8 @@ const RESOURCE_DEFS: ResourceDef[] = [
 export default function ResourceSidebar() {
   const resources = useResourceValues();
   const centralBankIndependence = useGameStore(s => s.centralBankIndependence);
+  const difficulty = useGameStore(s => s.difficulty);
+  const baseIncome = getDifficultyConfig(difficulty).baseCapitalIncome;
 
   return (
     <aside className="w-56 flex-shrink-0 bg-slate-900 border-r border-slate-700/50 p-4 flex flex-col gap-3 overflow-y-auto">
@@ -39,8 +42,11 @@ export default function ResourceSidebar() {
       {RESOURCE_DEFS.map(r => {
         const value = resources[r.key];
         const pct = Math.min((value / r.max) * 100, 100);
+        const tip = r.key === 'capital'
+          ? `Political capital. Spent on policies. You earn ${baseIncome}/turn from governance plus trade income.`
+          : r.tip;
         return (
-          <Tooltip key={r.key} text={r.tip}>
+          <Tooltip key={r.key} text={tip}>
             <div>
               <div className="flex justify-between text-xs text-slate-400 mb-1">
                 <span id={`resource-${r.key}-label`}>{r.label}</span>

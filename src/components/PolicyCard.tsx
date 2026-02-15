@@ -1,5 +1,6 @@
 import type { Policy } from '../types/actions';
 import Tooltip from './Tooltip';
+import { getEffectTags, formatPolicyEffects } from '../utils/policyEffects';
 
 const CATEGORY_COLORS: Record<string, string> = {
   economic: 'bg-emerald-800/80 text-emerald-200',
@@ -25,11 +26,12 @@ interface PolicyCardProps {
   policy: Policy;
   selected: boolean;
   disabled: boolean;
+  needsMajority?: boolean;
   effectiveCost: number;
   onToggle: () => void;
 }
 
-export default function PolicyCard({ policy, selected, disabled, effectiveCost, onToggle }: PolicyCardProps) {
+export default function PolicyCard({ policy, selected, disabled, needsMajority, effectiveCost, onToggle }: PolicyCardProps) {
   const colorClass = CATEGORY_COLORS[policy.category] ?? 'bg-slate-600 text-slate-200';
   const borderClass = CATEGORY_BORDER[policy.category] ?? 'border-l-slate-500';
 
@@ -40,8 +42,14 @@ export default function PolicyCard({ policy, selected, disabled, effectiveCost, 
     }
   }
 
+  const effectTags = getEffectTags(policy);
+  const structuredEffects = formatPolicyEffects(policy);
+  const fullTooltip = structuredEffects
+    ? `${policy.tooltip}\n---\n${structuredEffects}`
+    : policy.tooltip;
+
   return (
-    <Tooltip text={policy.tooltip}>
+    <Tooltip text={fullTooltip}>
       <div
         role="checkbox"
         aria-checked={selected}
@@ -64,7 +72,8 @@ export default function PolicyCard({ policy, selected, disabled, effectiveCost, 
       >
         <div className="flex items-center justify-between gap-2 mb-2">
           <h4 className="text-sm font-semibold text-slate-100 truncate">{policy.name}</h4>
-          {disabled && <span className="text-[10px] text-slate-400 italic shrink-0">Unavailable</span>}
+          {disabled && needsMajority && <span className="text-[10px] text-amber-400 italic shrink-0">Needs majority</span>}
+          {disabled && !needsMajority && <span className="text-[10px] text-slate-400 italic shrink-0">Unavailable</span>}
           <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full whitespace-nowrap ${colorClass}`}>
             {policy.category}
           </span>
@@ -72,6 +81,15 @@ export default function PolicyCard({ policy, selected, disabled, effectiveCost, 
         <div className="text-xs text-slate-400">
           Cost: <span className="text-slate-200 font-medium">{effectiveCost}</span>
         </div>
+        {effectTags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2" aria-hidden="true">
+            {effectTags.map((tag, i) => (
+              <span key={i} className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${tag.color}`}>
+                {tag.text}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </Tooltip>
   );

@@ -59,7 +59,7 @@ export default function Tooltip({ text, children }: TooltipProps) {
           ref={tipRef}
           id={id}
           role="tooltip"
-          className="pointer-events-none fixed z-[9999] rounded-lg bg-slate-900 px-3 py-2 text-sm text-slate-300 shadow-lg shadow-black/40 max-w-64 whitespace-normal border border-slate-700/50 animate-[fadeIn_0.15s_ease-out]"
+          className="pointer-events-none fixed z-[9999] rounded-lg bg-slate-900 px-3 py-2 text-sm text-slate-300 shadow-lg shadow-black/40 max-w-96 whitespace-pre-line border border-slate-700/50 animate-[fadeIn_0.15s_ease-out]"
           style={{
             left: `${pos.left}px`,
             top: `${pos.top}px`,

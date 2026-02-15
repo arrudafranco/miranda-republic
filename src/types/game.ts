@@ -86,6 +86,7 @@ export type EndingId =
 
 export interface CongressState {
   seatShares: Record<BlocId, number>;  // Proportional to power
+  friendlyMajority: boolean;
   pendingBill: string | null;
 }
 

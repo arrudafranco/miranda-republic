@@ -14,11 +14,15 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Resources',
-    body: 'The sidebar tracks your political resources. Legitimacy keeps you in power. Capital funds your policies. Narrative shapes public opinion. Polarization makes everything harder. Keep an eye on all of them.',
+    body: 'The sidebar tracks your political resources. Legitimacy keeps you in power. Capital funds your policies (you earn a base income each turn, plus trade income). Narrative shapes public opinion. Polarization makes everything harder. Keep an eye on all of them.',
   },
   {
     title: 'The Sidebar',
-    body: "Below your resources, you'll find three key panels. The Central Bank tracks how independent Miranda's monetary policy is... high independence pleases the Banks but limits your economic tools. The Colossus is the superpower watching Miranda's every move. And Congress tracks how much support you have in the legislature.",
+    body: "Below your resources, you'll find three key panels. The Central Bank tracks how independent Miranda's monetary policy is... high independence pleases the Banks but limits your economic tools. The Colossus is the superpower watching Miranda's every move. And Congress tracks your legislative support.",
+  },
+  {
+    title: 'Congress',
+    body: "If blocs loyal to you hold a majority in Congress, legislative policy costs drop 15%. Lose your majority and costs rise 15%, your legitimacy drains, and your rival exploits the weakness. Keep the powerful blocs on your side.",
   },
   {
     title: 'Blocs',
@@ -26,7 +30,7 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'Your Turn',
-    body: 'Each turn, a news event may occur. Then you choose policies to enact. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
+    body: 'Each turn, a news event may occur. Then you choose policies to enact. Hover over a policy card to see its full effects. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
   },
 ];
 

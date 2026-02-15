@@ -999,6 +999,7 @@ export const POLICIES: Policy[] = [
     maxPolarization: 60,
     capitalCost: 20,
     centrist: true,
+    requiresMajority: true,
     effects: {
       blocs: {
         court:   { loyalty: +10 },
@@ -1021,6 +1022,7 @@ export const POLICIES: Policy[] = [
     maxPolarization: 70,
     capitalCost: 15,
     centrist: true,
+    requiresMajority: true,
     effects: {
       blocs: {
         court:      { loyalty: +5 },

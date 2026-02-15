@@ -51,6 +51,7 @@ export interface Policy {
   centrist: boolean;
   targetBloc?: boolean;        // Player picks target bloc
   requiresSyndicateLoyalty?: number;
+  requiresMajority?: boolean;
   effects: PolicyEffects;
   conditionalEffects?: (state: GameState) => Partial<PolicyEffects>;
 }

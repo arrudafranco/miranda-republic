@@ -17,7 +17,7 @@ Miranda Republic is a turn-based strategy game where every policy decision rippl
 - **Styling:** Tailwind CSS v4
 - **Build Tool:** Vite
 - **Language:** TypeScript
-- **Testing:** Custom deterministic test harness with seedable PRNG (283 tests, including 1500-seed fuzz across 3 difficulty levels)
+- **Testing:** Custom deterministic test harness with seedable PRNG (297 tests, including 1500-seed fuzz across 3 difficulty levels)
 
 ## Local Development
 

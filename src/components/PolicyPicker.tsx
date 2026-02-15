@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { POLICIES } from '../data/policies';
 import { getPolarizationCostMultiplier } from '../engine/polarization';
+import { getCongressCostMultiplier } from '../engine/congress';
 import type { ActionChoice } from '../types/actions';
 import type { BlocId } from '../types/blocs';
 import PolicyCard from './PolicyCard';
@@ -11,19 +12,22 @@ function computeEffectiveCost(
   policy: typeof POLICIES[number],
   polarization: number,
   gridlockCountdown: number,
-  syndicateLoyalty: number
+  syndicateLoyalty: number,
+  friendlyMajority: boolean
 ): number {
   const costMultiplier = getPolarizationCostMultiplier(polarization, policy.centrist);
   const gridlockMultiplier = gridlockCountdown > 0 ? 1.2 : 1.0;
   const syndicateDiscount =
     policy.category === 'backroom' && syndicateLoyalty > 60 ? 0.7 : 1.0;
-  return Math.round(policy.capitalCost * costMultiplier * gridlockMultiplier * syndicateDiscount);
+  const congressMultiplier = getCongressCostMultiplier(friendlyMajority, policy.category);
+  return Math.round(policy.capitalCost * costMultiplier * gridlockMultiplier * syndicateDiscount * congressMultiplier);
 }
 
 export default function PolicyPicker() {
   const resources = useGameStore(s => s.resources);
   const blocs = useGameStore(s => s.blocs);
   const rival = useGameStore(s => s.rival);
+  const friendlyMajority = useGameStore(s => s.congress.friendlyMajority);
   const submitActions = useGameStore(s => s.submitActions);
 
   const [selected, setSelected] = useState<ActionChoice[]>([]);
@@ -33,7 +37,7 @@ export default function PolicyPicker() {
   const committedCapital = selected.reduce((sum, sel) => {
     const p = POLICIES.find(pp => pp.id === sel.policyId);
     if (!p) return sum;
-    return sum + computeEffectiveCost(p, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty);
+    return sum + computeEffectiveCost(p, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority);
   }, 0);
 
   function isPolicyDisabled(policy: typeof POLICIES[number]): boolean {
@@ -41,8 +45,10 @@ export default function PolicyPicker() {
     if (resources.polarization < policy.minPolarization || resources.polarization > policy.maxPolarization) return true;
     // Syndicate loyalty requirement
     if (policy.requiresSyndicateLoyalty !== undefined && blocs.syndicate.loyalty < policy.requiresSyndicateLoyalty) return true;
+    // Congressional majority requirement
+    if (policy.requiresMajority && !friendlyMajority) return true;
     // Capital check (remaining after committed)
-    const cost = computeEffectiveCost(policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty);
+    const cost = computeEffectiveCost(policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority);
     if (resources.capital - committedCapital < cost) return true;
     return false;
   }
@@ -92,7 +98,7 @@ export default function PolicyPicker() {
           const isSelected = selected.some(s => s.policyId === policy.id);
           const disabled = !isSelected && (isPolicyDisabled(policy) || selected.length >= 2);
           const effectiveCost = computeEffectiveCost(
-            policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty
+            policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority
           );
           return (
             <PolicyCard
@@ -100,6 +106,7 @@ export default function PolicyPicker() {
               policy={policy}
               selected={isSelected}
               disabled={disabled}
+              needsMajority={!!(policy.requiresMajority && !friendlyMajority)}
               effectiveCost={effectiveCost}
               onToggle={() => handleToggle(policy.id)}
             />

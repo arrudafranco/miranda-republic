@@ -30,11 +30,12 @@ function loyaltyColor(loyalty: number): string {
 export default function CongressPanel() {
   const seatShares = useGameStore(s => s.congress.seatShares);
   const blocs = useGameStore(s => s.blocs);
+  const isFriendly = useGameStore(s => s.congress.friendlyMajority);
 
   const hasData = ALL_BLOC_IDS.some(id => (seatShares[id] ?? 0) > 0);
   if (!hasData) return null;
 
-  // Calculate friendly majority (blocs with loyalty >= 50)
+  // Calculate friendly percentage for display
   let friendlyPct = 0;
   for (const id of ALL_BLOC_IDS) {
     if (blocs[id].loyalty >= 50) {
@@ -42,7 +43,6 @@ export default function CongressPanel() {
     }
   }
   friendlyPct = Math.round(friendlyPct);
-  const isFriendly = friendlyPct > 50;
 
   // Sort blocs by seat share descending for consistent bar rendering
   const sorted = ALL_BLOC_IDS
@@ -59,7 +59,7 @@ export default function CongressPanel() {
       <div
         className="flex h-5 rounded overflow-hidden"
         role="img"
-        aria-label={`Congressional seats. ${isFriendly ? 'Friendly' : 'No'} majority at ${friendlyPct}%`}
+        aria-label={`Congressional seats. ${isFriendly ? 'Friendly majority, legislative costs reduced' : 'No majority, legislative costs increased and legitimacy draining'}. ${friendlyPct}%`}
       >
         {sorted.map(id => {
           const pct = (seatShares[id] ?? 0) * 100;
@@ -83,7 +83,9 @@ export default function CongressPanel() {
 
       {/* Majority indicator */}
       <p className={`text-xs mt-1 ${isFriendly ? 'text-green-400' : 'text-red-400'}`}>
-        {isFriendly ? `Friendly majority... ${friendlyPct}%` : `No majority... ${friendlyPct}%`}
+        {isFriendly
+          ? `Friendly majority... ${friendlyPct}% (legislative costs reduced)`
+          : `No majority... ${friendlyPct}% (costs increased, legitimacy draining)`}
       </p>
     </div>
   );

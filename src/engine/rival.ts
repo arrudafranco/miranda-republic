@@ -82,6 +82,11 @@ export function calculateRivalPowerDelta(state: GameState): number {
     delta -= 2;
   }
 
+  // No congressional majority: rival exploits legislative weakness
+  if (!state.congress.friendlyMajority) {
+    delta += 1;
+  }
+
   // Cap total growth at +8 per turn
   const capped = Math.min(delta, 8);
 

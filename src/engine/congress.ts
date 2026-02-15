@@ -1,9 +1,15 @@
 import type { BlocId } from '../types/blocs';
 import type { GameState } from '../types/game';
+import type { ActionCategory } from '../types/actions';
 import { ALL_BLOC_IDS } from '../types/blocs';
 import { getEffectiveLaborPower } from './laborCohesion';
 
 const SYNDICATE_SEAT_MULTIPLIER = 0.3;
+
+/** Policy categories whose costs are affected by congressional majority */
+export const LEGISLATIVE_CATEGORIES: Set<ActionCategory> = new Set([
+  'economic', 'labor', 'security', 'institutional', 'diplomatic',
+]);
 
 /**
  * Calculate seat shares proportional to Power.
@@ -42,4 +48,31 @@ export function canPassBill(
 ): boolean {
   const totalShare = coalition.reduce((sum, id) => sum + (seatShares[id] || 0), 0);
   return totalShare > 0.5;
+}
+
+/**
+ * Determine if blocs with loyalty >= 50 hold >50% of congressional seats.
+ */
+export function hasFriendlyMajority(state: GameState): boolean {
+  const shares = state.congress.seatShares;
+  let friendlyPct = 0;
+  for (const id of ALL_BLOC_IDS) {
+    if (state.blocs[id].loyalty >= 50) {
+      friendlyPct += shares[id] ?? 0;
+    }
+  }
+  return friendlyPct > 0.5;
+}
+
+/**
+ * Returns the cost multiplier for a policy based on congressional majority.
+ * Legislative categories: 0.85x with majority, 1.15x without.
+ * Bypass categories (backroom, rhetoric): always 1.0.
+ */
+export function getCongressCostMultiplier(
+  friendlyMajority: boolean,
+  category: ActionCategory
+): number {
+  if (!LEGISLATIVE_CATEGORIES.has(category)) return 1.0;
+  return friendlyMajority ? 0.85 : 1.15;
 }

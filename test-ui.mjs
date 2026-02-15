@@ -3,8 +3,21 @@ import { chromium } from 'playwright';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 
-await page.goto('http://localhost:5173');
+// Clear saved game and mark tutorial as seen for clean state
+await page.goto('http://localhost:5173/fun/');
+await page.evaluate(() => {
+  localStorage.removeItem('miranda-save');
+  localStorage.setItem('miranda-tutorial-seen', '1');
+});
+await page.reload();
 await page.waitForTimeout(2000);
+
+// Select Standard difficulty
+const standardBtn = page.locator('button:has-text("Standard")');
+if (await standardBtn.isVisible()) {
+  await standardBtn.click();
+  await page.waitForTimeout(1000);
+}
 
 // Screenshot 1: Initial state with event modal
 await page.screenshot({ path: 'screenshots/01-event-modal.png' });
@@ -18,6 +31,16 @@ if (await choiceBtn.isVisible()) {
 
 // Screenshot 2: Action phase
 await page.screenshot({ path: 'screenshots/02-action-phase.png' });
+
+// Hero screenshot: use taller viewport to capture blocs + policy cards with effect tags
+await page.setViewportSize({ width: 1280, height: 1024 });
+await page.waitForTimeout(300);
+await page.evaluate(() => window.scrollTo(0, 300));
+await page.waitForTimeout(500);
+await page.screenshot({ path: 'screenshot.png' });
+await page.setViewportSize({ width: 1280, height: 800 });
+await page.evaluate(() => window.scrollTo(0, 0));
+await page.waitForTimeout(300);
 
 // Full page screenshot
 await page.screenshot({ path: 'screenshots/02b-action-fullpage.png', fullPage: true });

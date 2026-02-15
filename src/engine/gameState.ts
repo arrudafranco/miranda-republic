@@ -12,7 +12,7 @@ import { createInitialBlocStates } from '../data/blocs';
 import { POLICIES } from '../data/policies';
 import { generateRivalIdentity, processRivalTurn } from './rival';
 import { processColossusTurn, processCentralBankTurn, calculateTradeIncome } from './colossus';
-import { calculateSeatShares } from './congress';
+import { calculateSeatShares, hasFriendlyMajority, getCongressCostMultiplier } from './congress';
 import { applyNarrativePhase } from './narrative';
 import { processLaborCohesionTurn, getEffectiveLaborPower } from './laborCohesion';
 import { getPolarizationCostMultiplier, getBacklashChance, applyBacklash } from './polarization';
@@ -60,6 +60,7 @@ function createInitialState(difficulty: Difficulty = 'standard'): GameState {
     },
     congress: {
       seatShares: {} as Record<BlocId, number>,
+      friendlyMajority: false,
       pendingBill: null,
     },
     laborCohesion: 40,
@@ -141,6 +142,7 @@ function resolveAction(state: GameState, action: ActionChoice): void {
   if (policy.requiresSyndicateLoyalty !== undefined) {
     if (state.blocs.syndicate.loyalty < policy.requiresSyndicateLoyalty) return;
   }
+  if (policy.requiresMajority && !state.congress.friendlyMajority) return;
 
   // Calculate actual capital cost with polarization modifier
   const costMultiplier = getPolarizationCostMultiplier(
@@ -153,9 +155,13 @@ function resolveAction(state: GameState, action: ActionChoice): void {
   const syndicateDiscount = (
     policy.category === 'backroom' && state.blocs.syndicate.loyalty > 60
   ) ? 0.7 : 1.0;
+  // Congressional majority modifier for legislative categories
+  const congressMultiplier = getCongressCostMultiplier(
+    state.congress.friendlyMajority, policy.category
+  );
 
   const totalCost = Math.round(
-    policy.capitalCost * costMultiplier * gridlockMultiplier * syndicateDiscount
+    policy.capitalCost * costMultiplier * gridlockMultiplier * syndicateDiscount * congressMultiplier
   );
   if (state.resources.capital < totalCost) return;
   state.resources.capital = clamp(state.resources.capital - totalCost, 0, 999);
@@ -399,6 +405,7 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   // Congressional phase
   state.phase = 'congressional';
   state.congress.seatShares = calculateSeatShares(state);
+  state.congress.friendlyMajority = hasFriendlyMajority(state);
 
   // Narrative phase
   state.phase = 'narrative';
@@ -407,6 +414,13 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   // End phase
   state.phase = 'end';
   processLaborCohesionTurn(state);
+
+  // Congressional legitimacy effect
+  const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
+  if (hasSeats) {
+    const legitDelta = state.congress.friendlyMajority ? 1 : -1;
+    state.resources.legitimacy = clamp(state.resources.legitimacy + legitDelta, 0, 100);
+  }
 
   const endEvent = checkEndPhaseEvents(state);
   if (endEvent) {
@@ -517,6 +531,7 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   // Phase 5: CONGRESSIONAL
   state.phase = 'congressional';
   state.congress.seatShares = calculateSeatShares(state);
+  state.congress.friendlyMajority = hasFriendlyMajority(state);
 
   // Phase 6: NARRATIVE
   state.phase = 'narrative';
@@ -525,6 +540,13 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   // Phase 7: END
   state.phase = 'end';
   processLaborCohesionTurn(state);
+
+  // Congressional legitimacy effect
+  const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
+  if (hasSeats) {
+    const legitDelta = state.congress.friendlyMajority ? 1 : -1;
+    state.resources.legitimacy = clamp(state.resources.legitimacy + legitDelta, 0, 100);
+  }
 
   // Check end-phase events (loyalty thresholds)
   const endEvent = checkEndPhaseEvents(state);
@@ -566,6 +588,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   initGame: (difficulty: Difficulty = 'standard') => {
     const state = createInitialState(difficulty);
     state.congress.seatShares = calculateSeatShares(state);
+    state.congress.friendlyMajority = hasFriendlyMajority(state);
     startNewsPhaseImpl(state);
     set(state);
   },
@@ -653,6 +676,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (saved.centralBankIndependence === undefined) saved.centralBankIndependence = 60;
       if (saved.unionLoyaltyAbove70Streak === undefined) saved.unionLoyaltyAbove70Streak = 0;
       if (saved.highPolarizationStreak === undefined) saved.highPolarizationStreak = 0;
+      if (saved.congress && saved.congress.friendlyMajority === undefined) saved.congress.friendlyMajority = false;
       set(saved as GameState);
       return true;
     } catch {
