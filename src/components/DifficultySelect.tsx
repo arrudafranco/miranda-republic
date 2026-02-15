@@ -45,6 +45,11 @@ interface Props {
 }
 
 export default function DifficultySelect({ onSelect }: Props) {
+  const handleSelect = (difficulty: Difficulty) => {
+    // Reset tutorial flag so new games always show the tutorial
+    try { localStorage.removeItem('miranda-tutorial-seen'); } catch { /* ignore */ }
+    onSelect(difficulty);
+  };
   return (
     <div
       className="min-h-screen bg-slate-900 flex flex-col items-center justify-center px-4"
@@ -62,7 +67,7 @@ export default function DifficultySelect({ onSelect }: Props) {
         {OPTIONS.map(opt => (
           <button
             key={opt.id}
-            onClick={() => onSelect(opt.id)}
+            onClick={() => handleSelect(opt.id)}
             className={`text-left p-6 rounded-xl border ${opt.border} bg-slate-800/80 ${opt.hoverBg} transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-cyan-500 cursor-pointer`}
             aria-label={`${opt.title} difficulty. ${opt.subtitle}`}
           >

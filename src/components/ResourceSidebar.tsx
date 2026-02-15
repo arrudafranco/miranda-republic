@@ -32,6 +32,11 @@ export default function ResourceSidebar() {
   const centralBankIndependence = useGameStore(s => s.centralBankIndependence);
   const difficulty = useGameStore(s => s.difficulty);
   const baseIncome = getDifficultyConfig(difficulty).baseCapitalIncome;
+  const colossus = useGameStore(s => s.colossus);
+  // Trade income: base 10 * (tradeDependency/100), halved if alignment < 30
+  const rawTrade = Math.round(10 * (colossus.tradeDependency / 100));
+  const tradeIncome = colossus.alignment < 30 ? Math.round(rawTrade * 0.5) : rawTrade;
+  const totalIncome = baseIncome + tradeIncome;
 
   return (
     <aside className="w-56 flex-shrink-0 bg-slate-900 border-r border-slate-700/50 p-4 flex flex-col gap-3 overflow-y-auto">
@@ -43,7 +48,7 @@ export default function ResourceSidebar() {
         const value = resources[r.key];
         const pct = Math.min((value / r.max) * 100, 100);
         const tip = r.key === 'capital'
-          ? `Political capital. Spent on policies. You earn ${baseIncome}/turn from governance plus trade income.`
+          ? `Political capital. Spent on policies. You earn ${totalIncome}/turn (${baseIncome} governance + ${tradeIncome} trade).${colossus.alignment < 30 ? ' Trade halved due to low Colossus alignment.' : ''}`
           : r.tip;
         return (
           <Tooltip key={r.key} text={tip}>
