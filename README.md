@@ -28,7 +28,7 @@ npm install
 npm run dev
 ```
 
-The game runs at `http://localhost:5173` by default.
+The game runs at `http://localhost:5173/fun/` by default.
 
 ## Project Structure
 
@@ -47,7 +47,7 @@ src/
 
 This project demonstrates several software engineering skills beyond the tech stack itself:
 
-- **Game engine architecture.** Pure-function engine with clean separation between simulation logic, state management, and UI. Twelve engine modules (rival AI, congressional math, narrative phase, crisis chains, etc.) compose without side effects.
+- **Game engine architecture.** Pure-function engine with clean separation between simulation logic, state management, and UI. Eleven engine modules (rival AI, congressional math, narrative phase, crisis chains, etc.) compose without side effects.
 - **Deterministic testing with seedable PRNG.** All randomness routes through a seedable Mulberry32 PRNG, enabling exact reproducibility. The test harness runs 1,500 fuzz simulations (500 seeds x 3 difficulties) asserting invariants across ~72,000 game ticks, with any failure producing a deterministic repro.
 - **Complex system balancing.** 14 interacting blocs with sensitivity matrices, ripple effects, polarization feedback loops, and a multi-phase turn structure. Difficulty tiers are tuned via parameterized configs, validated by automated balance assertions.
 - **Accessibility-first UI.** Full ARIA support (roles, labels, live regions), semantic HTML, keyboard navigation with focus traps in modals, skip links, `prefers-reduced-motion` support, and high-contrast color choices.
