@@ -76,9 +76,21 @@ export default function PresidentialDispatch() {
     >
       <div
         ref={dialogRef}
-        className={`bg-slate-800 border ${TONE_BORDER[tone]} rounded-2xl shadow-2xl max-w-xl w-full mx-4 my-4 overflow-hidden shrink-0`}
+        className={`bg-slate-800 border ${TONE_BORDER[tone]} rounded-2xl shadow-2xl max-w-xl w-full mx-4 my-4 overflow-hidden shrink-0 relative`}
       >
         <div className={`h-1 bg-gradient-to-r ${TONE_GRADIENT[tone]}`} />
+
+        {/* Close button */}
+        <button
+          onClick={() => dismissDispatch()}
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 z-10"
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+
         <div className="p-6 sm:p-8 max-h-[80vh] overflow-y-auto">
           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
             Presidential Dispatch

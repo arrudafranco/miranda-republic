@@ -10,7 +10,7 @@ A political simulation game set in a fictional developing nation. Navigate four 
 
 Miranda Republic is a turn-based strategy game where every policy decision ripples through 14 political blocs, from the Banks to the Underworld. Manage your legitimacy, control the national narrative, and keep the Colossus (a powerful foreign superpower) from losing patience. With 51 policies (including 5 milestone-exclusive rewards), 9 achievement milestones, event outcome cards, dynamic events, crisis chains, an Inauguration Day narrative opening, richly varied turn briefings, narrative epilogues (Presidential Dispatches) for all 10 endings, and 10 possible endings, no two playthroughs are alike.
 
-The desktop UI features switchable Overview/Detail modes for blocs, policies, milestones, and the sidebar, collapsible sections, dynamic resource bar coloring, a milestone tracker with condition checklists, an always-visible toolbar End Turn button with action count, and a guided 14-step tutorial with spotlight highlighting. Fully responsive for mobile with a 5-tab layout.
+The desktop UI features switchable Overview/Detail modes for blocs, policies, milestones, and the sidebar, collapsible sections, dynamic resource bar coloring, a milestone tracker with condition checklists, an always-visible toolbar End Turn button with action count, close buttons on all informational modals, and a guided 14-step tutorial with spotlight highlighting. Fully responsive for mobile with a 5-tab layout.
 
 ## Tech Stack
 

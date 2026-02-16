@@ -106,7 +106,8 @@ const STEPS: TutorialStep[] = [
   {
     title: 'Turn Reports',
     body: 'After your turn ends, you may see a brief report of what happened across Miranda. These are narrative snapshots, not exhaustive summaries. Pay attention to what the Rival is doing and any crises unfolding. Or press Continue to skip ahead.',
-    spotlight: { desktop: 'news-log', mobile: 'tab-news', mobileTab: 'news' },
+    // No spotlight — news log is at the bottom of the page and spotlighting it
+    // makes the visible viewport tiny. Show this step as a centered card instead.
   },
 ];
 

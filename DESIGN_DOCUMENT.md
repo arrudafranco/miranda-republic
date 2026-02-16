@@ -1392,7 +1392,11 @@ The tutorial overlay (accessible via the "?" button) highlights relevant UI elem
 
 On mobile, the tutorial auto-switches bottom nav tabs to show the relevant section (e.g., switching to the Status tab when explaining resources).
 
-Steps without a spotlight target (Welcome) fall back to a centered modal with full dark backdrop. The tutorial now has 13 steps including Locked Policies and Collapsing Sections. A scroll listener (capture phase) keeps the spotlight position in sync when the user scrolls during the tutorial.
+Steps without a spotlight target (Welcome, Turn Reports) fall back to a centered modal with full dark backdrop. The Turn Reports step was changed from spotlighted to centered because the News Log sits at the bottom of the page and the box-shadow spotlight made the visible viewport tiny. The tutorial has 14 steps including Locked Policies, Collapsing Sections, and Milestones. A scroll listener (capture phase) keeps the spotlight position in sync when the user scrolls during the tutorial.
+
+**Single instance architecture.** Only one `TutorialOverlay` component exists in Dashboard. The Help button ("?") dispatches a `replay-tutorial` custom DOM event, which Dashboard listens for and sets `forceShow` on the single instance. This ensures consistent behavior (including mobile tab switching) whether it's a first-time tutorial or a replay.
+
+**Section expansion on tutorial open.** When the tutorial opens (first visit or replay), it dispatches a `tutorial-expand-sections` event. All `CollapsibleSection` components listen for this event and expand, ensuring spotlight targets are visible. On tutorial close, `main-content` scroll position resets to top.
 
 ### Bloc Grouping
 
@@ -1505,6 +1509,25 @@ After choosing an event option, players now see an outcome card with narrative t
 
 ---
 
+## Modal Close Buttons
+
+All informational modals (those without player choices) have an X close button in the top-right corner. This follows standard UI design conventions and provides an additional dismiss affordance beyond the primary button and keyboard shortcuts.
+
+**Modals with X buttons:**
+- Turn Briefing (also dismissible via Continue, Escape, Enter, Space, backdrop click)
+- Day One Briefing (also dismissible via Begin, Escape)
+- Milestone Reward Card (also dismissible via Continue, Escape)
+- Presidential Dispatch (also dismissible via Continue to Report, Escape)
+- Event Outcome Card (also dismissible via Continue, Escape)
+
+**Modals without X buttons:**
+- Event Modal (choice stage) -- players must select an option; dismissal would skip the decision
+- Bloc Target Modal -- players must select a target bloc
+
+**Design rationale.** Informational modals benefit from an obvious close target, especially for players unfamiliar with keyboard shortcuts. Event choices are deliberately excluded because letting players dismiss them would bypass meaningful gameplay decisions.
+
+---
+
 ## UI Visual Reinforcement
 
 Six UI changes that communicate game state through visual cues.
@@ -1540,6 +1563,11 @@ Non-oneShot events now have cooldown periods to prevent rapid repetition. Random
 - Toolbar phase indicator shows phase labels during non-action phases, End Turn button during action phase
 - Shared pendingActions state in Zustand store for synchronized toolbar and inline End Turn buttons
 - Tutorial spotlight scroll fix: auto-scrolls to off-screen targets before measuring position
+- Tutorial step 14 (Turn Reports) changed from spotlighted to centered card (news log spotlight cramped viewport)
+- Single TutorialOverlay instance: Help button replay consolidated into Dashboard's instance via custom DOM event
+- Tutorial auto-expands all collapsible sections on open, resets scroll on close
+- X close buttons on all informational modals (TurnBriefing, DayOneBriefing, MilestoneRewardCard, PresidentialDispatch, EventModal outcome stage)
+- Escape key handler added to DayOneBriefing
 - 130 tests across 7 suites (15 new dispatch tests)
 
 ### v1.6 (February 2026)

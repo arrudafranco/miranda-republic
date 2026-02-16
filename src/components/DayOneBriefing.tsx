@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import type { Difficulty } from '../types/game';
@@ -67,6 +67,13 @@ export default function DayOneBriefing() {
     }
   }, [showDayOneBriefing, tutorialDone]);
 
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      dismissDayOneBriefing();
+    }
+  }, [dismissDayOneBriefing]);
+
   if (!showDayOneBriefing || !tutorialDone) return null;
 
   const paragraphs = getBriefingParagraphs(difficulty, rivalName, rivalTitle);
@@ -77,10 +84,22 @@ export default function DayOneBriefing() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="dayone-title"
+      onKeyDown={handleKeyDown}
     >
-      <div className="bg-slate-900 border border-slate-600 rounded-2xl shadow-2xl max-w-xl w-full mx-4 my-4 overflow-hidden shrink-0">
+      <div className="bg-slate-900 border border-slate-600 rounded-2xl shadow-2xl max-w-xl w-full mx-4 my-4 overflow-hidden shrink-0 relative">
         {/* Top accent line */}
         <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-transparent" />
+
+        {/* Close button */}
+        <button
+          onClick={dismissDayOneBriefing}
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
 
         <div className={isMobile ? 'p-5' : 'p-8'}>
           <h2

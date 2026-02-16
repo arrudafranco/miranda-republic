@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useInactivityGlow } from '../hooks/useInactivityGlow';
@@ -138,6 +138,7 @@ function DesktopBody() {
 export default function Dashboard() {
   const { isMobile } = useBreakpoint();
   const mobileTabSetterRef = useRef<((tab: MobileTab) => void) | null>(null);
+  const [forceReplay, setForceReplay] = useState(false);
 
   const handleMobileTabRef = useCallback((setter: (tab: MobileTab) => void) => {
     mobileTabSetterRef.current = setter;
@@ -145,6 +146,13 @@ export default function Dashboard() {
 
   const handleTutorialTabChange = useCallback((tab: MobileTab) => {
     mobileTabSetterRef.current?.(tab);
+  }, []);
+
+  // Listen for Help button replay requests (single TutorialOverlay instance)
+  useEffect(() => {
+    function handleReplay() { setForceReplay(true); }
+    window.addEventListener('replay-tutorial', handleReplay);
+    return () => window.removeEventListener('replay-tutorial', handleReplay);
   }, []);
 
   return (
@@ -163,7 +171,11 @@ export default function Dashboard() {
       <DayOneBriefing />
       <PresidentialDispatch />
       <GameOverScreen />
-      <TutorialOverlay onMobileTabChange={isMobile ? handleTutorialTabChange : undefined} />
+      <TutorialOverlay
+        forceShow={forceReplay || undefined}
+        onClose={() => setForceReplay(false)}
+        onMobileTabChange={isMobile ? handleTutorialTabChange : undefined}
+      />
     </div>
   );
 }

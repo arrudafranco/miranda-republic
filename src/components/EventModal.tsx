@@ -83,8 +83,20 @@ export default function EventModal() {
         aria-labelledby="outcome-title"
         onKeyDown={handleKeyDown}
       >
-        <div ref={dialogRef} className="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-lg w-full mx-4 my-4 overflow-hidden shrink-0">
+        <div ref={dialogRef} className="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-lg w-full mx-4 my-4 overflow-hidden shrink-0 relative">
           <div className="h-1 bg-gradient-to-r from-amber-500 via-amber-400 to-transparent" />
+
+          {/* Close button (outcome is informational, no choices) */}
+          <button
+            onClick={() => dismissOutcome()}
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Close"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+
           <div className="p-6">
             <h2 id="outcome-title" className="text-lg font-bold text-amber-400 mb-3">
               {pendingOutcome.choiceLabel}
