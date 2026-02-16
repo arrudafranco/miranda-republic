@@ -30,6 +30,10 @@ npm run dev
 
 The game runs at `http://localhost:5173/miranda-republic/` by default.
 
+## Documentation
+
+For a complete reference of all game mechanics, policies, events, crisis chains, endings, and design rationale, see **[GAME_MECHANICS.md](GAME_MECHANICS.md)**.
+
 ## Project Structure
 
 ```
