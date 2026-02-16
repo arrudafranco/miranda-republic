@@ -1,6 +1,6 @@
 # Miranda Republic -- Game Mechanics Documentation
 
-*Last updated: v1.0 (February 2026)*
+*Last updated: v1.2 (February 2026)*
 
 This document describes all game mechanics, systems, and design rationale in detail. It is intended as a reference for development, balance tuning, and onboarding.
 
@@ -26,8 +26,9 @@ This document describes all game mechanics, systems, and design rationale in det
 16. [Crisis Chains](#crisis-chains)
 17. [Win and Loss Conditions](#win-and-loss-conditions)
 18. [Difficulty Settings](#difficulty-settings)
-19. [Design Rationale](#design-rationale)
-20. [Changelog](#changelog)
+19. [Day One Briefing](#day-one-briefing)
+20. [Design Rationale](#design-rationale)
+21. [Changelog](#changelog)
 
 ---
 
@@ -526,11 +527,13 @@ At specific power levels, one-shot events trigger and special effects activate:
 
 ### Rival Action Text
 
-Each turn, the rival performs a narrative action based on their background, current power tier, and the player's most exploitable weakness. These are flavor text displayed in the UI.
+Each turn, the rival performs a narrative action based on their background, current power tier, and the player's most exploitable weakness. These are flavor text displayed in the turn report.
 
 Power tiers: Low (0-35), Mid (36-65), High (66+).
 
 Weaknesses are identified by severity: low legitimacy, high inflation, no majority, high polarization, or low narrative.
+
+The text pool contains 240 unique lines (60 per background: 15 low, 20 mid, 25 high). Each background has a distinct voice: congressional leaders speak in parliamentary maneuvers, regional governors in populist ground-level campaigns, retired generals in terse military authority, and media personalities in viral engagement metrics. Every background has at least 3 weakness-specific lines per tier covering all five weakness types.
 
 ---
 
@@ -1062,6 +1065,37 @@ Three difficulty levels affect starting conditions and ongoing mechanics.
 
 ---
 
+## Day One Briefing
+
+A narrative modal that bridges the tutorial and the first game event, providing an "Inauguration Day" moment.
+
+### Flow
+
+1. Player selects difficulty, `initGame()` creates state with `showDayOneBriefing: true`
+2. Tutorial shows (if first time) at z-50
+3. Player dismisses tutorial
+4. Day One Briefing appears (z-50, DOM order places it behind tutorial but visible once tutorial is gone)
+5. Player clicks "Begin" to dismiss
+6. First news event shows
+
+For returning players (tutorial already seen), the briefing shows immediately after difficulty selection. For loaded games, `showDayOneBriefing` migrates to `false` (the inauguration already happened).
+
+### Content
+
+3-4 paragraphs of dark whimsy narrative. The player has just arrived at the presidential desk. A mahogany desk, a telephone, briefing folders, and a pre-signed resignation letter from the predecessor. The chief of staff introduces the political landscape, referencing the rival by name and title (from game state), the fourteen factions, the Colossus, and the 48-month term. Ends with "The phone is ringing."
+
+### Design Rationale
+
+The Day One briefing solves the jarring transition from tutorial to first event. Without it, the player finishes learning mechanics and immediately faces "The Drought" with no narrative context. The briefing establishes the presidential setting, introduces the rival as a named character rather than a stat bar, and sets the dark whimsy tone before mechanical decisions begin.
+
+No auto-advance timer. This is a first-impression moment. No Escape key dismiss either. You can't escape inauguration day.
+
+### Accessibility
+
+Dialog role, aria-modal, auto-focus on Begin button.
+
+---
+
 ## Design Rationale
 
 ### Core Design Philosophy
@@ -1161,19 +1195,30 @@ After the player ends their turn and all phases process, a narrative briefing ov
 1. **Rival actions** (priority 100) -- The rival's generated action text, always included if present
 2. **Crisis events** (priority 95) -- Active crisis chain developments
 3. **Discovery/scandal** (priority 90) -- Triggered when legitimacy drops >= 15 in one turn
-4. **Rival threshold crossings** (priority 85-88) -- When rival power crosses 50 or 75
-5. **Resource threshold crossings** (priority 70-82) -- Inflation crossing 10 or 18, Narrative dropping below 30 or rising above 60, Mobilization dropping below 20, Polarization crossing 60, Dread crossing 40
-6. **Bloc loyalty milestones** (priority 60-65) -- Key blocs dropping below 25 or rising above 70 (flavor text specific to each bloc)
+4. **Rival threshold crossings** (priority 85-88) -- When rival power crosses 30, 50, 75, or 85
+5. **Resource threshold crossings** (priority 70-82) -- Inflation crossing 10 or 18, Narrative dropping below 30 or rising above 60, Mobilization dropping below 20, Polarization crossing 60, Dread crossing 40, Legitimacy dropping below 30, Capital dropping below 20
+6. **Bloc loyalty milestones** (priority 60-65) -- All 14 blocs have flavor text for dropping below 25 or rising above 70
 7. **Colossus patience** (priority 55) -- Ambassador's patience below 30
 8. **Policy unlocks** (priority 50) -- New policies became available
+9. **Color vignettes** (priority 35) -- Atmospheric world-building snapshots (see below)
+
+### Color Vignettes
+
+A pool of 30 atmospheric vignettes that fire on quiet turns when fewer than 2 higher-priority items exist. These are pure world-building with no mechanical information. They paint Miranda as a lived-in place through palace life, city atmosphere, government bureaucracy, street life, seasonal weather, and dark whimsy. Examples: a filing clerk discovering a 1987 form, the presidential phone ringing at 3 AM (wrong number), jacaranda trees blooming in the government district.
+
+Color vignettes ensure there is always a visible turn transition, preventing the jarring effect of a quiet turn advancing immediately into the next event.
 
 ### Behavior
 
 - Maximum 3 items shown per briefing (highest priority wins)
-- If nothing notable happened, no briefing appears (skip to next turn)
+- If fewer than 2 candidates exist, a color vignette is injected as a minimum transition
 - Auto-advances after 8 seconds with visible countdown
 - Dismissible via click, Enter, Escape, or Space
 - Items compare current state to `previousResources` (stored at start of turn processing)
+
+### Content Scale
+
+All briefing text is stored in module-level arrays with `randomChoice()` selection, ensuring variety across playthroughs. The pool contains ~125 unique vignettes across all categories. Each category has 2-4 variant texts to reduce repetition.
 
 ### Tone
 
@@ -1182,6 +1227,22 @@ The briefing text uses situationist detournement. It employs the language of ins
 ---
 
 ## UI Systems
+
+### Turn Report Visual Design
+
+The turn report modal displays briefing items with visual hierarchy and labeled sections. A cyan gradient accent line runs across the top.
+
+**Rival section** appears at the top with the rival's name and title as a subheading (e.g., "Governor Fuentes, Regional Governor"), followed by their action text in amber italic. This section has a left amber border to distinguish it from other items.
+
+**Other items** are labeled by type with colored left borders:
+- `crisis` -> "Crisis Report" (red border)
+- `discovery` -> "Intelligence" (purple border)
+- `resource` -> "Field Report" (emerald border)
+- `bloc_shift` -> "Political Dispatch" (cyan border)
+- `unlock` -> "New Capability" (green border)
+- `color` -> no label, no border (atmospheric, labels would break the mood)
+
+The header reads "Turn Report, Month {turn}" to anchor the player in the timeline.
 
 ### Policy Category Tabs
 
@@ -1210,6 +1271,18 @@ Small colored arrows next to each resource value show the direction of change fr
 ---
 
 ## Changelog
+
+### v1.2 (February 2026)
+- Day One "Inauguration Day" briefing with narrative introduction and rival name
+- Turn report redesign with rival section header, type labels, and colored borders
+- Color vignette system (30 atmospheric world-building texts for quiet turns)
+- Rival action text expanded from 86 to 240 lines (60 per background, weakness coverage)
+- Briefing vignettes expanded from 25 to ~125 unique texts across all categories
+- New briefing triggers: rival crossing 30/85, crisis stage 1, legitimacy < 30, capital < 20
+- All 14 blocs now have low-loyalty and high-loyalty briefing texts
+- Narrative tooltip no longer spoils ending thresholds
+- "All" tab in policy picker now groups policies by category within tiers
+- 452 tests (up from 409), including content expansion and Day One briefing coverage
 
 ### v1.1 (February 2026)
 - Policy category tabs with filtering, sorting, and ARIA tablist navigation

@@ -65,7 +65,7 @@ function getDynamicTooltip(
         : value < 30
           ? 'Below 30, your rival grows faster.'
           : 'Between 30 and 50, moderate rival pressure.';
-      return `Control of the public story (${value}/100). ${rivalNote} Driven by Heralds, Artists, Scholars, and Clergy loyalty. Above 60, unlocks the best endings.`;
+      return `Control of the public story (${value}/100). ${rivalNote} Driven by Heralds, Artists, Scholars, and Clergy loyalty. Higher values open more options at term's end.`;
     }
     case 'capital':
       return `Political capital (${value}). Spent on policies. You earn ${totalIncome}/turn (${baseIncome} governance + ${tradeIncome} trade).${colossusAlignment < 30 ? ' Trade halved due to low Colossus alignment.' : ''}`;

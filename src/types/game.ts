@@ -84,7 +84,7 @@ export type EndingId =
   | 'rival_wins'
   | 'new_compact';
 
-export type BriefingItemType = 'rival' | 'crisis' | 'discovery' | 'bloc_shift' | 'resource' | 'unlock';
+export type BriefingItemType = 'rival' | 'crisis' | 'discovery' | 'bloc_shift' | 'resource' | 'unlock' | 'color';
 
 export interface BriefingItem {
   text: string;
@@ -142,6 +142,9 @@ export interface GameState {
   // Turn briefing
   briefingItems: BriefingItem[];
   showBriefing: boolean;
+
+  // Day One briefing (shown once after difficulty selection)
+  showDayOneBriefing: boolean;
 
   // Previous turn resources (for trend arrows)
   previousResources: ResourceState | null;

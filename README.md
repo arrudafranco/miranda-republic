@@ -8,7 +8,7 @@ A political simulation game set in a fictional developing nation. Navigate four 
 
 ## About
 
-Miranda Republic is a turn-based strategy game where every policy decision ripples through 14 political blocs, from the Banks to the Underworld. Manage your legitimacy, control the national narrative, and keep the Colossus (a powerful foreign superpower) from losing patience. With 46 policies that unlock progressively as your government grows, dynamic events, crisis chains, narrative turn briefings, and 10 possible endings, no two playthroughs are alike.
+Miranda Republic is a turn-based strategy game where every policy decision ripples through 14 political blocs, from the Banks to the Underworld. Manage your legitimacy, control the national narrative, and keep the Colossus (a powerful foreign superpower) from losing patience. With 46 policies that unlock progressively as your government grows, dynamic events, crisis chains, an Inauguration Day narrative opening, richly varied turn briefings, and 10 possible endings, no two playthroughs are alike.
 
 ## Tech Stack
 
@@ -17,7 +17,7 @@ Miranda Republic is a turn-based strategy game where every policy decision rippl
 - **Styling:** Tailwind CSS v4
 - **Build Tool:** Vite
 - **Language:** TypeScript
-- **Testing:** Custom deterministic test harness with seedable PRNG (409 tests, including 1500-seed fuzz across 3 difficulty levels)
+- **Testing:** Custom deterministic test harness with seedable PRNG (452 tests, including 1500-seed fuzz across 3 difficulty levels)
 
 ## Local Development
 

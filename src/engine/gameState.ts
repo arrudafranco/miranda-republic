@@ -36,6 +36,7 @@ export interface GameStore extends GameState {
   resolveCurrentEvent: (choiceId?: string) => void;
   submitActions: (actions: ActionChoice[]) => void;
   dismissBriefing: () => void;
+  dismissDayOneBriefing: () => void;
   saveGame: () => void;
   loadGame: () => boolean;
   hasSavedGame: () => boolean;
@@ -81,6 +82,7 @@ function createInitialState(difficulty: Difficulty = 'standard'): GameState {
     newlyUnlockedPolicyIds: [],
     briefingItems: [],
     showBriefing: false,
+    showDayOneBriefing: true,
     newsLog: [],
     previousResources: null,
     ending: null,
@@ -678,6 +680,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(state);
   },
 
+  dismissDayOneBriefing: () => {
+    set({ showDayOneBriefing: false });
+  },
+
   advancePhase: () => {
     // For future UI: advance one phase at a time
     const phases: TurnPhase[] = [
@@ -690,7 +696,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   saveGame: () => {
-    const { initGame, processFullTurn, advancePhase, getState, startNewsPhase, resolveCurrentEvent, submitActions, dismissBriefing, saveGame, loadGame, hasSavedGame, deleteSave, ...state } = get();
+    const { initGame, processFullTurn, advancePhase, getState, startNewsPhase, resolveCurrentEvent, submitActions, dismissBriefing, dismissDayOneBriefing, saveGame, loadGame, hasSavedGame, deleteSave, ...state } = get();
     // Replace currentEvent with its ID for serialization (condition functions aren't serializable)
     const serializable = {
       ...state,
@@ -729,6 +735,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (!saved.newlyUnlockedPolicyIds) saved.newlyUnlockedPolicyIds = [];
       if (!saved.briefingItems) saved.briefingItems = [];
       if (saved.showBriefing === undefined) saved.showBriefing = false;
+      if (saved.showDayOneBriefing === undefined) saved.showDayOneBriefing = false;
       set(saved as GameState);
       return true;
     } catch {
@@ -753,7 +760,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   getState: () => {
-    const { initGame, processFullTurn, advancePhase, getState, startNewsPhase, resolveCurrentEvent, submitActions, dismissBriefing, saveGame, loadGame, hasSavedGame, deleteSave, ...state } = get();
+    const { initGame, processFullTurn, advancePhase, getState, startNewsPhase, resolveCurrentEvent, submitActions, dismissBriefing, dismissDayOneBriefing, saveGame, loadGame, hasSavedGame, deleteSave, ...state } = get();
     return state as GameState;
   },
 }));

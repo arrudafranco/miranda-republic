@@ -9,6 +9,7 @@ import GameOverScreen from './GameOverScreen';
 import Tooltip from './Tooltip';
 import TutorialOverlay from './TutorialOverlay';
 import TurnBriefing from './TurnBriefing';
+import DayOneBriefing from './DayOneBriefing';
 import HelpButton from './HelpButton';
 
 const PHASE_LABELS: Record<string, string> = {
@@ -150,6 +151,7 @@ export default function Dashboard() {
       {/* Modals (self-manage visibility) */}
       <EventModal />
       <TurnBriefing />
+      <DayOneBriefing />
       <GameOverScreen />
       <TutorialOverlay />
     </div>

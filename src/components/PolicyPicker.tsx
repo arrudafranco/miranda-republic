@@ -155,6 +155,13 @@ export default function PolicyPicker() {
     const bDisabled = isPolicyDisabled(b);
     if (aDisabled !== bDisabled) return aDisabled ? 1 : -1;
 
+    // Group by category in "All" tab
+    if (activeTab === 'all') {
+      const aCatIdx = CATEGORY_ORDER.indexOf(a.category);
+      const bCatIdx = CATEGORY_ORDER.indexOf(b.category);
+      if (aCatIdx !== bCatIdx) return aCatIdx - bCatIdx;
+    }
+
     // Within available: sort by cost ascending
     const aCost = computeEffectiveCost(a, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority);
     const bCost = computeEffectiveCost(b, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority);

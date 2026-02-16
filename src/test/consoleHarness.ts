@@ -2,7 +2,7 @@ import { createInitialState, processFullTurnImpl, checkWinLossConditions, resolv
 import { calculateSeatShares, canPassBill, hasFriendlyMajority, getCongressCostMultiplier } from '../engine/congress';
 import { getEffectiveLaborPower } from '../engine/laborCohesion';
 import { getPolarizationCostMultiplier, getBacklashChance } from '../engine/polarization';
-import { calculateRivalPowerDelta, generateRivalAction } from '../engine/rival';
+import { calculateRivalPowerDelta, generateRivalAction, RIVAL_ACTIONS } from '../engine/rival';
 import { processDiscoveryTick } from '../engine/discovery';
 import { processCrisisTick } from '../engine/crisisChains';
 import { getStartingPolicyIds, isPolicyUnlockMet, processUnlocks } from '../engine/unlocks';
@@ -1186,13 +1186,14 @@ function test21_BriefingGeneration() {
   const inflationItem = items5.find(i => i.type === 'resource');
   assert(inflationItem !== undefined, 'Inflation crossing 10 generates resource item');
 
-  // 7. Quiet turn with no notable changes produces no items
+  // 7. Quiet turn injects a color vignette (no other notable changes)
   const s6 = createInitialState();
   s6.previousResources = deepClone(s6.resources);
   // No rival action, no crises, no threshold crossings
   s6.rival.lastAction = '';
   const items6 = generateBriefingItems(s6);
-  assert(items6.length === 0, `Quiet turn produces no briefing: got ${items6.length}`);
+  assert(items6.length === 1, `Quiet turn injects color vignette: got ${items6.length}`);
+  assert(items6[0].type === 'color', `Color vignette type: ${items6[0].type}`);
 
   // 8. Bloc loyalty shift generates item
   const s7 = createInitialState();
@@ -1236,6 +1237,96 @@ function test21_BriefingGeneration() {
 }
 
 // ============================
+// Test 22: Content Expansion Verification
+// ============================
+function test22_ContentExpansion() {
+  console.log('\n▸ test22_ContentExpansion');
+
+  // 1. Rival action line count >= 240 total
+  const backgrounds = ['congressional_leader', 'regional_governor', 'retired_general', 'media_personality'] as const;
+  let totalLines = 0;
+  for (const bg of backgrounds) {
+    const lines = RIVAL_ACTIONS[bg];
+    const low = lines.filter(t => t.tier === 'low').length;
+    const mid = lines.filter(t => t.tier === 'mid').length;
+    const high = lines.filter(t => t.tier === 'high').length;
+    console.log(`  ${bg}: low=${low}, mid=${mid}, high=${high}, total=${lines.length}`);
+    assert(low >= 15, `${bg} low tier >= 15 lines (${low})`);
+    assert(mid >= 20, `${bg} mid tier >= 20 lines (${mid})`);
+    assert(high >= 25, `${bg} high tier >= 25 lines (${high})`);
+    totalLines += lines.length;
+  }
+  assert(totalLines >= 240, `Total rival lines >= 240 (${totalLines})`);
+
+  // 2. All backgrounds have weakness lines for each tier
+  for (const bg of backgrounds) {
+    const lines = RIVAL_ACTIONS[bg];
+    for (const tier of ['low', 'mid', 'high'] as const) {
+      const weaknessLines = lines.filter(t => t.tier === tier && t.weakness);
+      assert(weaknessLines.length >= 3, `${bg} ${tier} has >= 3 weakness lines (${weaknessLines.length})`);
+    }
+  }
+
+  // 3. Rival action text is non-empty for all 4 backgrounds x 3 tiers
+  for (const bg of backgrounds) {
+    for (const power of [10, 50, 80]) {
+      seedRng(2200);
+      const state = createInitialState();
+      state.rival.background = bg;
+      state.rival.power = power;
+      const action = generateRivalAction(state);
+      assert(typeof action === 'string' && action.length > 0,
+        `${bg} power=${power} produces text`);
+    }
+  }
+
+  // 4. Color vignettes can be generated
+  seedRng(2201);
+  const colorState = createInitialState();
+  colorState.previousResources = deepClone(colorState.resources);
+  colorState.rival.lastAction = '';
+  const items = generateBriefingItems(colorState);
+  const colorItem = items.find(i => i.type === 'color');
+  assert(colorItem !== undefined, 'Color vignette generated on quiet turn');
+  assert(colorItem!.text.length > 0, 'Color vignette has non-empty text');
+
+  // 5. showDayOneBriefing is true on init, false after migration
+  const initState = createInitialState();
+  assert(initState.showDayOneBriefing === true, 'showDayOneBriefing true on init');
+
+  // 6. Fuzz: 100 seeds, verify no briefing text is empty or undefined
+  let emptyBriefings = 0;
+  for (let seed = 0; seed < 100; seed++) {
+    seedRng(seed + 3000);
+    const state = createInitialState();
+    // Run a few turns
+    for (let t = 0; t < 5; t++) {
+      if (state.gameOver) break;
+      processFullTurnImpl(state, []);
+    }
+    // Check last briefing items
+    for (const item of state.briefingItems) {
+      if (!item.text || item.text.length === 0) emptyBriefings++;
+    }
+  }
+  assert(emptyBriefings === 0, `No empty briefing texts across 100 seeds (found ${emptyBriefings})`);
+
+  // 7. No em-dashes or colons in rival action text
+  let styleViolations = 0;
+  for (const bg of backgrounds) {
+    for (const template of RIVAL_ACTIONS[bg]) {
+      if (template.text.includes('—') || template.text.includes(':')) {
+        styleViolations++;
+        if (styleViolations <= 3) {
+          console.log(`    Style violation: "${template.text.slice(0, 60)}..."`);
+        }
+      }
+    }
+  }
+  assert(styleViolations === 0, `No em-dashes or colons in rival text (${styleViolations} violations)`);
+}
+
+// ============================
 // RUN ALL TESTS
 // ============================
 console.log('╔══════════════════════════════════════════╗');
@@ -1263,6 +1354,7 @@ test18_CongressionalMechanics();
 test19_RivalActions();
 test20_PolicyUnlockSystem();
 test21_BriefingGeneration();
+test22_ContentExpansion();
 
 // Reset RNG to non-deterministic mode
 seedRng();
