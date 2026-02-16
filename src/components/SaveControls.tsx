@@ -8,6 +8,8 @@ export default function SaveControls() {
   const hasSavedGame = useGameStore(s => s.hasSavedGame);
   const gameOver = useGameStore(s => s.gameOver);
   const turn = useGameStore(s => s.turn);
+  const skipBriefings = useGameStore(s => s.skipBriefings);
+  const setSkipBriefings = useGameStore(s => s.setSkipBriefings);
 
   const [flash, setFlash] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<'load' | 'new' | null>(null);
@@ -65,6 +67,15 @@ export default function SaveControls() {
           {confirmAction === 'new' ? 'Confirm?' : 'New Game'}
         </button>
       ) : null}
+      <label className="flex items-center gap-1.5 cursor-pointer ml-1" title="Skip turn reports between turns">
+        <input
+          type="checkbox"
+          checked={skipBriefings}
+          onChange={(e) => setSkipBriefings(e.target.checked)}
+          className="w-3 h-3 rounded border-slate-600 bg-slate-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900"
+        />
+        <span className="text-[10px] text-slate-400">Skip reports</span>
+      </label>
     </div>
   );
 }

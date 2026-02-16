@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { getDifficultyConfig } from '../types/game';
 import type { ResourceState } from '../types/resources';
@@ -6,6 +7,10 @@ import ColossusPanel from './ColossusPanel';
 import CongressPanel from './CongressPanel';
 import RivalBar from './RivalBar';
 import SaveControls from './SaveControls';
+import SidebarOverview from './SidebarOverview';
+
+const SIDEBAR_VIEW_KEY = 'miranda-sidebar-view';
+type SidebarViewMode = 'detail' | 'overview';
 
 interface ResourceDef {
   key: keyof ResourceState;
@@ -116,14 +121,28 @@ export default function ResourceSidebar({ variant = 'sidebar' }: ResourceSidebar
   const previousResources = useGameStore(s => s.previousResources);
   const centralBankIndependence = useGameStore(s => s.centralBankIndependence);
   const difficulty = useGameStore(s => s.difficulty);
-  const skipBriefings = useGameStore(s => s.skipBriefings);
-  const setSkipBriefings = useGameStore(s => s.setSkipBriefings);
   const config = getDifficultyConfig(difficulty);
   const baseIncome = config.baseCapitalIncome;
   const colossus = useGameStore(s => s.colossus);
   const rawTrade = Math.round(10 * (colossus.tradeDependency / 100));
   const tradeIncome = colossus.alignment < 30 ? Math.round(rawTrade * 0.5) : rawTrade;
   const totalIncome = baseIncome + tradeIncome;
+
+  const [sidebarView, setSidebarView] = useState<SidebarViewMode>(() => {
+    try {
+      return (localStorage.getItem(SIDEBAR_VIEW_KEY) as SidebarViewMode) || 'detail';
+    } catch {
+      return 'detail';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_VIEW_KEY, sidebarView);
+    } catch {
+      // ignore
+    }
+  }, [sidebarView]);
 
   const isFullwidth = variant === 'fullwidth';
   const barHeight = isFullwidth ? 'h-3' : 'h-2';
@@ -134,22 +153,6 @@ export default function ResourceSidebar({ variant = 'sidebar' }: ResourceSidebar
         {/* Save controls at top on mobile */}
         <div className="rounded-xl p-3 bg-slate-800 border border-slate-600/40">
           <SaveControls />
-        </div>
-
-        {/* Skip briefings toggle */}
-        <div className="rounded-xl p-3 bg-slate-800 border border-slate-600/40">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={skipBriefings}
-              onChange={(e) => setSkipBriefings(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900"
-            />
-            <div>
-              <span className="text-sm text-slate-300">Skip turn reports</span>
-              <span className="block text-[10px] text-slate-500">(You can always re-enable this)</span>
-            </div>
-          </label>
         </div>
 
         {/* Resources in 2-column grid */}
@@ -236,106 +239,129 @@ export default function ResourceSidebar({ variant = 'sidebar' }: ResourceSidebar
   // Default sidebar variant
   return (
     <aside className="w-56 flex-shrink-0 bg-slate-900 border-r border-slate-700/50 p-4 flex flex-col gap-3 overflow-y-auto">
-      <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 font-pixel">
-        Resources
-      </h2>
-
-      {RESOURCE_DEFS.map(r => {
-        const value = resources[r.key];
-        const pct = Math.min((value / r.max) * 100, 100);
-        const tip = getDynamicTooltip(
-          r.key, value, resources,
-          totalIncome, baseIncome, tradeIncome,
-          colossus.alignment,
-          centralBankIndependence,
-          config.coupDreadThreshold
-        );
-        const prevValue = previousResources ? previousResources[r.key] : undefined;
-        const trend = getTrendArrow(r.key, value, prevValue);
-
-        return (
-          <Tooltip key={r.key} text={tip}>
-            <div>
-              <div className="flex justify-between text-xs text-slate-400 mb-1">
-                <span id={`resource-${r.key}-label`}>{r.label}</span>
-                <span className="flex items-center gap-1">
-                  {trend && (
-                    <>
-                      <span className={`text-[10px] leading-none ${trend.colorClass}`} aria-hidden="true">{trend.symbol}</span>
-                      <span className="sr-only">{r.label} {trend.srText}</span>
-                    </>
-                  )}
-                  {value}{r.max <= 100 ? '' : `/${r.max}`}
-                </span>
-              </div>
-              <div
-                className="h-2 bg-slate-700 rounded-full overflow-hidden"
-                role="progressbar"
-                aria-valuenow={value}
-                aria-valuemin={0}
-                aria-valuemax={r.max}
-                aria-labelledby={`resource-${r.key}-label`}
-              >
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${r.color}${r.key === 'narrative' && value < 30 ? ' animate-narrative-flicker' : ''}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          </Tooltip>
-        );
-      })}
-
-      <hr className="border-slate-700/50 my-1" />
-
-      {/* Central Bank Independence */}
-      <div className="rounded-xl p-3 bg-slate-800 border border-teal-400/30 shadow-md shadow-teal-900/20">
-        <h3 className="text-xs font-semibold text-teal-300 uppercase tracking-wider mb-2 font-pixel">
-          Central Bank
-        </h3>
-        <Tooltip text="How independent is the central bank from your government. High independence stabilizes Banks but limits your monetary tools.">
-          <div className="flex justify-between text-xs text-slate-400 mb-1">
-            <span id="cbi-label">Independence</span>
-            <span>{centralBankIndependence}</span>
-          </div>
-        </Tooltip>
-        <div
-          className="h-2 bg-slate-700 rounded-full overflow-hidden"
-          role="progressbar"
-          aria-valuenow={centralBankIndependence}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-labelledby="cbi-label"
-        >
-          <div
-            className="h-full rounded-full transition-all duration-500 bg-teal-300"
-            style={{ width: `${centralBankIndependence}%` }}
-          />
+      {/* View toggle */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider font-pixel">
+          Resources
+        </h2>
+        <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5" role="radiogroup" aria-label="Sidebar view mode">
+          <button
+            role="radio"
+            aria-checked={sidebarView === 'overview'}
+            onClick={() => setSidebarView('overview')}
+            className={`px-2 py-0.5 text-[9px] font-medium rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+              sidebarView === 'overview' ? 'bg-slate-700 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Compact
+          </button>
+          <button
+            role="radio"
+            aria-checked={sidebarView === 'detail'}
+            onClick={() => setSidebarView('detail')}
+            className={`px-2 py-0.5 text-[9px] font-medium rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+              sidebarView === 'detail' ? 'bg-slate-700 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+            }`}
+          >
+            Detail
+          </button>
         </div>
       </div>
 
-      <hr className="border-slate-700/50 my-1" />
-      <ColossusPanel />
+      {sidebarView === 'overview' ? (
+        <SidebarOverview />
+      ) : (
+        <>
+          <div data-tutorial="resources">
+            {RESOURCE_DEFS.map(r => {
+              const value = resources[r.key];
+              const pct = Math.min((value / r.max) * 100, 100);
+              const tip = getDynamicTooltip(
+                r.key, value, resources,
+                totalIncome, baseIncome, tradeIncome,
+                colossus.alignment,
+                centralBankIndependence,
+                config.coupDreadThreshold
+              );
+              const prevValue = previousResources ? previousResources[r.key] : undefined;
+              const trend = getTrendArrow(r.key, value, prevValue);
 
-      <hr className="border-slate-700/50 my-1" />
-      <CongressPanel />
+              return (
+                <Tooltip key={r.key} text={tip}>
+                  <div>
+                    <div className="flex justify-between text-xs text-slate-400 mb-1">
+                      <span id={`resource-${r.key}-label`}>{r.label}</span>
+                      <span className="flex items-center gap-1">
+                        {trend && (
+                          <>
+                            <span className={`text-[10px] leading-none ${trend.colorClass}`} aria-hidden="true">{trend.symbol}</span>
+                            <span className="sr-only">{r.label} {trend.srText}</span>
+                          </>
+                        )}
+                        {value}{r.max <= 100 ? '' : `/${r.max}`}
+                      </span>
+                    </div>
+                    <div
+                      className="h-2 bg-slate-700 rounded-full overflow-hidden"
+                      role="progressbar"
+                      aria-valuenow={value}
+                      aria-valuemin={0}
+                      aria-valuemax={r.max}
+                      aria-labelledby={`resource-${r.key}-label`}
+                    >
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${r.color}${r.key === 'narrative' && value < 30 ? ' animate-narrative-flicker' : ''}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                </Tooltip>
+              );
+            })}
+          </div>
 
-      <hr className="border-slate-700/50 my-1" />
-      <RivalBar />
+          <hr className="border-slate-700/50 my-1" />
 
-      {/* Skip briefings toggle */}
-      <hr className="border-slate-700/50 my-1" />
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={skipBriefings}
-          onChange={(e) => setSkipBriefings(e.target.checked)}
-          className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-700 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900"
-        />
-        <div>
-          <span className="text-xs text-slate-400">Skip turn reports</span>
-        </div>
-      </label>
+          {/* Central Bank Independence */}
+          <div className="rounded-xl p-3 bg-slate-800 border border-teal-400/30 shadow-md shadow-teal-900/20" data-tutorial="panels">
+            <h3 className="text-xs font-semibold text-teal-300 uppercase tracking-wider mb-2 font-pixel">
+              Central Bank
+            </h3>
+            <Tooltip text="How independent is the central bank from your government. High independence stabilizes Banks but limits your monetary tools.">
+              <div className="flex justify-between text-xs text-slate-400 mb-1">
+                <span id="cbi-label">Independence</span>
+                <span>{centralBankIndependence}</span>
+              </div>
+            </Tooltip>
+            <div
+              className="h-2 bg-slate-700 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={centralBankIndependence}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-labelledby="cbi-label"
+            >
+              <div
+                className="h-full rounded-full transition-all duration-500 bg-teal-300"
+                style={{ width: `${centralBankIndependence}%` }}
+              />
+            </div>
+          </div>
+
+          <hr className="border-slate-700/50 my-1" />
+          <ColossusPanel />
+
+          <hr className="border-slate-700/50 my-1" />
+          <div data-tutorial="congress">
+            <CongressPanel />
+          </div>
+
+          <hr className="border-slate-700/50 my-1" />
+          <div data-tutorial="rival">
+            <RivalBar />
+          </div>
+        </>
+      )}
     </aside>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { POLICIES } from '../data/policies';
@@ -7,8 +7,12 @@ import { getCongressCostMultiplier } from '../engine/congress';
 import type { ActionChoice, ActionCategory, Policy } from '../types/actions';
 import type { BlocId } from '../types/blocs';
 import PolicyCard from './PolicyCard';
+import PolicyOverviewTable from './PolicyOverviewTable';
 import PolicyDetailSheet from './PolicyDetailSheet';
 import BlocTargetModal from './BlocTargetModal';
+
+const POLICY_VIEW_KEY = 'miranda-policy-view';
+type PolicyViewMode = 'detail' | 'overview';
 
 const CATEGORY_TAB_COLORS: Record<string, string> = {
   economic: 'border-emerald-400 text-emerald-300',
@@ -66,6 +70,21 @@ export default function PolicyPicker() {
   const [activeTab, setActiveTab] = useState<CategoryFilter>('all');
   const [detailPolicy, setDetailPolicy] = useState<Policy | null>(null);
   const tabListRef = useRef<HTMLDivElement>(null);
+  const [policyViewMode, setPolicyViewMode] = useState<PolicyViewMode>(() => {
+    try {
+      return (localStorage.getItem(POLICY_VIEW_KEY) as PolicyViewMode) || 'detail';
+    } catch {
+      return 'detail';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(POLICY_VIEW_KEY, policyViewMode);
+    } catch {
+      // ignore
+    }
+  }, [policyViewMode]);
 
   // Calculate total committed capital
   const committedCapital = selected.reduce((sum, sel) => {
@@ -236,10 +255,36 @@ export default function PolicyPicker() {
 
   return (
     <section aria-label="Policy selection">
-      <div className="px-4 pt-4 pb-2">
-        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1 font-pixel">
-          Choose Actions ({selected.length}/2)
-        </h3>
+      <div className="px-4 pt-4 pb-2" data-tutorial="policies">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider font-pixel">
+            Choose Actions ({selected.length}/2)
+          </h3>
+          {!isMobile && (
+            <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-0.5" role="radiogroup" aria-label="Policy view mode">
+              <button
+                role="radio"
+                aria-checked={policyViewMode === 'overview'}
+                onClick={() => setPolicyViewMode('overview')}
+                className={`px-2.5 py-1 text-[10px] font-medium rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+                  policyViewMode === 'overview' ? 'bg-slate-700 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                role="radio"
+                aria-checked={policyViewMode === 'detail'}
+                onClick={() => setPolicyViewMode('detail')}
+                className={`px-2.5 py-1 text-[10px] font-medium rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+                  policyViewMode === 'detail' ? 'bg-slate-700 text-cyan-300' : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                Detail
+              </button>
+            </div>
+          )}
+        </div>
         {!isMobile && (
           <p className="text-xs text-slate-500 mb-3">
             Select up to 2 policies, then end your turn. You can also skip by ending with no selections.
@@ -257,6 +302,7 @@ export default function PolicyPicker() {
         ref={tabListRef}
         role="tablist"
         aria-label="Policy categories"
+        data-tutorial="policy-tabs"
         className={`flex gap-1 px-4 pb-3 overflow-x-auto scrollbar-hide ${isMobile ? 'tab-fade-edges' : ''}`}
       >
         {allTabs.map((tab) => {
@@ -294,48 +340,66 @@ export default function PolicyPicker() {
         id={tabPanelId}
         role="tabpanel"
         aria-labelledby={`tab-${activeTab}`}
-        className={isMobile
-          ? 'flex flex-col gap-1 px-3 pb-3'
-          : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-4 pb-4'}
+        className={
+          !isMobile && policyViewMode === 'overview'
+            ? 'px-4 pb-4'
+            : isMobile
+              ? 'flex flex-col gap-1 px-3 pb-3'
+              : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 px-4 pb-4'
+        }
       >
-        {sortedPolicies.map(policy => {
-          const isLocked = !unlockedPolicyIds.includes(policy.id);
-          if (isLocked) {
+        {!isMobile && policyViewMode === 'overview' ? (
+          <PolicyOverviewTable
+            policies={sortedPolicies}
+            selected={selected}
+            unlockedPolicyIds={unlockedPolicyIds}
+            newlyUnlockedPolicyIds={newlyUnlockedPolicyIds}
+            isDisabled={isPolicyDisabled}
+            getDisabledReason={getDisabledReason}
+            getEffectiveCost={(p) => computeEffectiveCost(p, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority)}
+            onToggle={handleToggle}
+            onDetail={setDetailPolicy}
+          />
+        ) : (
+          sortedPolicies.map(policy => {
+            const isLocked = !unlockedPolicyIds.includes(policy.id);
+            if (isLocked) {
+              return (
+                <PolicyCard
+                  key={policy.id}
+                  policy={policy}
+                  selected={false}
+                  disabled={true}
+                  effectiveCost={0}
+                  onToggle={() => {}}
+                  locked={true}
+                  lockHint={policy.unlockCondition?.hint}
+                  compact={isMobile}
+                />
+              );
+            }
+            const isSelected = selected.some(s => s.policyId === policy.id);
+            const disabledReason = isSelected ? null : (isPolicyDisabled(policy) ? getDisabledReason(policy) : null);
+            const disabled = !isSelected && (disabledReason !== null || selected.length >= 2);
+            const effectiveCost = computeEffectiveCost(
+              policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority
+            );
             return (
               <PolicyCard
                 key={policy.id}
                 policy={policy}
-                selected={false}
-                disabled={true}
-                effectiveCost={0}
-                onToggle={() => {}}
-                locked={true}
-                lockHint={policy.unlockCondition?.hint}
+                selected={isSelected}
+                disabled={disabled}
+                disabledReason={disabledReason}
+                effectiveCost={effectiveCost}
+                onToggle={() => handleToggle(policy.id)}
+                onDetail={isMobile ? () => setDetailPolicy(policy) : undefined}
+                isNew={newlyUnlockedPolicyIds.includes(policy.id)}
                 compact={isMobile}
               />
             );
-          }
-          const isSelected = selected.some(s => s.policyId === policy.id);
-          const disabledReason = isSelected ? null : (isPolicyDisabled(policy) ? getDisabledReason(policy) : null);
-          const disabled = !isSelected && (disabledReason !== null || selected.length >= 2);
-          const effectiveCost = computeEffectiveCost(
-            policy, resources.polarization, rival.gridlockCountdown, blocs.syndicate.loyalty, friendlyMajority
-          );
-          return (
-            <PolicyCard
-              key={policy.id}
-              policy={policy}
-              selected={isSelected}
-              disabled={disabled}
-              disabledReason={disabledReason}
-              effectiveCost={effectiveCost}
-              onToggle={() => handleToggle(policy.id)}
-              onDetail={isMobile ? () => setDetailPolicy(policy) : undefined}
-              isNew={newlyUnlockedPolicyIds.includes(policy.id)}
-              compact={isMobile}
-            />
-          );
-        })}
+          })
+        )}
       </div>
 
       {/* End Turn button */}
@@ -348,7 +412,7 @@ export default function PolicyPicker() {
         </button>
       </div>
 
-      {/* Policy detail bottom sheet (mobile) */}
+      {/* Policy detail sheet */}
       {detailPolicy && (() => {
         const isLocked = !unlockedPolicyIds.includes(detailPolicy.id);
         const isSelected = selected.some(s => s.policyId === detailPolicy.id);

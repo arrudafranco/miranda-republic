@@ -1,3 +1,4 @@
+import { useRef, useCallback } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import ResourceSidebar from './ResourceSidebar';
@@ -13,6 +14,7 @@ import DayOneBriefing from './DayOneBriefing';
 import HelpButton from './HelpButton';
 import SaveControls from './SaveControls';
 import MobileLayout from './MobileLayout';
+import type { MobileTab } from './MobileBottomNav';
 
 const PHASE_LABELS: Record<string, string> = {
   news: 'News',
@@ -105,6 +107,15 @@ function DesktopBody() {
 
 export default function Dashboard() {
   const { isMobile } = useBreakpoint();
+  const mobileTabSetterRef = useRef<((tab: MobileTab) => void) | null>(null);
+
+  const handleMobileTabRef = useCallback((setter: (tab: MobileTab) => void) => {
+    mobileTabSetterRef.current = setter;
+  }, []);
+
+  const handleTutorialTabChange = useCallback((tab: MobileTab) => {
+    mobileTabSetterRef.current?.(tab);
+  }, []);
 
   return (
     <div className="h-dvh flex flex-col bg-slate-950 text-slate-100 scanlines">
@@ -113,14 +124,14 @@ export default function Dashboard() {
       </a>
 
       {isMobile ? <MobileHeader /> : <DesktopHeader />}
-      {isMobile ? <MobileLayout /> : <DesktopBody />}
+      {isMobile ? <MobileLayout onTabRef={handleMobileTabRef} /> : <DesktopBody />}
 
       {/* Modals (self-manage visibility) */}
       <EventModal />
       <TurnBriefing />
       <DayOneBriefing />
       <GameOverScreen />
-      <TutorialOverlay />
+      <TutorialOverlay onMobileTabChange={isMobile ? handleTutorialTabChange : undefined} />
     </div>
   );
 }

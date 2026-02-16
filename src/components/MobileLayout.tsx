@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import MobileBottomNav, { type MobileTab } from './MobileBottomNav';
 import BlocGrid from './BlocGrid';
@@ -6,9 +6,22 @@ import PolicyPicker from './PolicyPicker';
 import ResourceSidebar from './ResourceSidebar';
 import NewsLog from './NewsLog';
 
-export default function MobileLayout() {
+interface MobileLayoutProps {
+  onTabRef?: (setTab: (tab: MobileTab) => void) => void;
+}
+
+export default function MobileLayout({ onTabRef }: MobileLayoutProps) {
   const [activeTab, setActiveTab] = useState<MobileTab>('actions');
   const phase = useGameStore(s => s.phase);
+
+  const handleTabChange = useCallback((tab: MobileTab) => {
+    setActiveTab(tab);
+  }, []);
+
+  // Expose setActiveTab to parent via callback ref
+  if (onTabRef) {
+    onTabRef(handleTabChange);
+  }
 
   return (
     <>
@@ -41,7 +54,7 @@ export default function MobileLayout() {
       </div>
 
       {/* Bottom tab bar */}
-      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Bottom spacer for fixed nav */}
       <div className="h-14 flex-shrink-0" aria-hidden="true" />

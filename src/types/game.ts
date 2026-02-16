@@ -150,6 +150,9 @@ export interface GameState {
   // Previous turn resources (for trend arrows)
   previousResources: ResourceState | null;
 
+  // Previous turn bloc loyalty (for trend arrows)
+  prevBlocLoyalty?: Record<BlocId, number>;
+
   // Game end
   ending: EndingId | null;
   gameOver: boolean;

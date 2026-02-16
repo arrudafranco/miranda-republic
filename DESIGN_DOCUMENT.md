@@ -1326,13 +1326,58 @@ Tooltips update dynamically as values change. They teach mechanics through play 
 
 Small colored arrows next to each resource value show the direction of change from the previous turn. Green arrows indicate beneficial changes, red indicates harmful changes, gray indicates stability. For "negative" resources (polarization, inflation, dread), the color coding is inverted (increases are red). Screen readers announce trend descriptions via sr-only text.
 
+### Desktop View Modes (Overview/Detail Toggles)
+
+Each major desktop panel supports two view modes, toggled via radio buttons with localStorage persistence. Mobile uses its own compact modes and does not show these toggles.
+
+**Bloc Grid:** Overview mode shows a condensed table with emoji + name + color-coded loyalty + muted power per row, grouped by faction (State Power, Capital, Culture, Labor, Underworld). Click any row to expand an inline accordion with full loyalty/power bars and mood text. Detail mode shows the original full bloc cards. Trend arrows (from `prevBlocLoyalty` engine snapshot) show loyalty direction.
+
+**Policy Picker:** Overview mode shows a compact table with category dot + policy name + cost + up to 2 effect tags + checkbox. Click a policy name to open the PolicyDetailSheet for full details. Locked policies show as greyed rows with lock icon and hint. Detail mode shows the original full policy cards.
+
+**Resource Sidebar:** Compact mode replaces progress bars with a number grid (colored dot + abbreviated label + value) and collapses panels (CBI, Colossus, Congress, Rival) to single-line summaries. Click any collapsed panel to expand inline. Detail mode shows the original full sidebar.
+
+**Design rationale:** Playtesting revealed that the mobile-responsive compact modes were often more scannable than desktop's full cards. These toggles bring that information density to desktop while preserving the detailed view for players who prefer it. View preference persists across sessions via localStorage.
+
+### Tutorial Spotlighting
+
+The tutorial overlay (accessible via the "?" button) highlights relevant UI elements using a box-shadow cutout technique. When a step has a spotlight target, a transparent div overlays the target element with `box-shadow: 0 0 0 9999px rgba(0,0,0,0.7)` to dim everything except the target. The tutorial card repositions itself to avoid overlapping (preferring below > right > above > left > centered fallback).
+
+On mobile, the tutorial auto-switches bottom nav tabs to show the relevant section (e.g., switching to the Status tab when explaining resources).
+
+Steps without spotlight targets (Welcome, Backroom Deals, Turn Reports, View Modes) fall back to a centered modal with full dark backdrop.
+
+### Bloc Grouping
+
+Blocs are organized into 5 groups reflecting materialist categories:
+- **State Power** (cyan border): Court, Generals, Enforcers
+- **Capital** (amber border): Banks, Factories, Big Tech, Landowners, Main Street
+- **Culture** (violet border): Heralds, Clergy, Scholars, Artists
+- **Labor** (sky border): Unions
+- **Underworld** (rose border): The Underworld
+
+Labor is intentionally separate from Culture. Unions operate on fundamentally different incentives (wages, working conditions, collective bargaining power) than cultural institutions (narrative, prestige, public opinion). Grouping them together would obscure meaningful gameplay distinctions.
+
 ---
 
 ## Changelog
 
+### v1.4 (February 2026)
+- Desktop Overview/Detail toggles for Blocs (BlocOverviewTable), Policies (PolicyOverviewTable), and Sidebar (SidebarOverview)
+- Tutorial spotlighting with box-shadow cutout technique and auto-positioning card
+- Tutorial mobile tab auto-switching for spotlight targets
+- New tutorial step explaining view mode toggles
+- Bloc grouping reverted: Labor separated from Civil Society into standalone group (distinct economic incentives)
+- `prevBlocLoyalty` engine state for bloc trend arrows in overview table
+- Skip-briefings toggle moved from sidebar to header toolbar (SaveControls)
+- Vitest migration: 85 tests across 4 suites replacing custom console harness
+- 3,000-seed fuzz (500 x 3 difficulties x 2 suites) validating engine invariants
+- New components: BlocOverviewTable, PolicyOverviewTable, SidebarOverview, TutorialSpotlight
+- `data-tutorial` attribute system for spotlight targeting
+- Community feedback section added to README
+
 ### v1.3 (February 2026)
 - Mobile-responsive redesign with bottom tab navigation (Blocs, Actions, Status, News)
-- Compact BlocCard accordion mode for mobile with group headers (State Power, Capital, Civil Society, Underworld)
+- Compact BlocCard accordion mode for mobile with group headers
 - Compact PolicyCard list mode for mobile with PolicyDetailSheet bottom sheet
 - Fullwidth ResourceSidebar variant for mobile Status tab
 - Skip turn reports toggle (persists across saves, default off)

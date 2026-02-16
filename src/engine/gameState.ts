@@ -398,6 +398,12 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   const config = getDifficultyConfig(state.difficulty);
   const legitimacyAtTurnStart = state.resources.legitimacy;
   state.previousResources = { ...state.resources };
+  // Snapshot bloc loyalty for trend arrows
+  const blocSnapshot: Record<string, number> = {};
+  for (const id of ALL_BLOC_IDS) {
+    blocSnapshot[id] = state.blocs[id].loyalty;
+  }
+  state.prevBlocLoyalty = blocSnapshot as Record<BlocId, number>;
 
   // Action phase
   state.phase = 'action';
@@ -492,6 +498,12 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   const config = getDifficultyConfig(state.difficulty);
   const legitimacyAtTurnStart = state.resources.legitimacy;
   state.previousResources = { ...state.resources };
+  // Snapshot bloc loyalty for trend arrows
+  const blocSnapshot: Record<string, number> = {};
+  for (const id of ALL_BLOC_IDS) {
+    blocSnapshot[id] = state.blocs[id].loyalty;
+  }
+  state.prevBlocLoyalty = blocSnapshot as Record<BlocId, number>;
 
   // Phase 1: NEWS — check crisis queue first, then normal events
   state.phase = 'news';
@@ -749,6 +761,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (saved.rival && saved.rival.lastAction === undefined) saved.rival.lastAction = '';
       if (saved.rival && saved.rival.powerDelta === undefined) saved.rival.powerDelta = 0;
       if (saved.previousResources === undefined) saved.previousResources = null;
+      if (saved.prevBlocLoyalty === undefined) saved.prevBlocLoyalty = undefined;
       if (!saved.unlockedPolicyIds) saved.unlockedPolicyIds = POLICIES.map(p => p.id); // legacy saves: all unlocked
       if (!saved.newlyUnlockedPolicyIds) saved.newlyUnlockedPolicyIds = [];
       if (!saved.briefingItems) saved.briefingItems = [];

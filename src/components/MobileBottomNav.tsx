@@ -112,6 +112,7 @@ export default function MobileBottomNav({ activeTab, onTabChange }: MobileBottom
               role="tab"
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
+              data-tutorial={`tab-${tab.id}`}
               onClick={() => onTabChange(tab.id)}
               onKeyDown={handleKeyDown}
               className={`
