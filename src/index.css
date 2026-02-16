@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Prevent white flash on overscroll / behind viewport */
+html, body {
+  background-color: #020617; /* slate-950 */
+}
+
 /* Pixel font utility */
 .font-pixel {
   font-family: "Silkscreen", cursive;
