@@ -276,11 +276,11 @@ export default function PolicyPicker() {
           </span>
         );
       })}
-      <span className="text-xs text-slate-400 ml-auto">
+      <span className="text-xs text-slate-400">
         {selected.length}/2 selected, {remainingCapital} capital left
       </span>
       {!isMobile && (
-        <button onClick={handleEndTurn} className={endTurnButtonClass}>
+        <button onClick={handleEndTurn} className={`ml-auto ${endTurnButtonClass}`}>
           {endTurnButtonText}
         </button>
       )}
@@ -330,13 +330,8 @@ export default function PolicyPicker() {
     </div>
   ) : null;
 
-  // Desktop header right: only toggles (keeps alignment consistent with other sections)
-  const desktopHeaderRight = !isMobile ? (
-    <>
-      {lockedToggle}
-      {viewToggle}
-    </>
-  ) : null;
+  // Desktop header right: only view toggle (keeps alignment consistent with other sections)
+  const desktopHeaderRight = !isMobile ? viewToggle : null;
 
   // Policy content (tabs + grid + mobile controls)
   const policyContent = (
@@ -351,12 +346,13 @@ export default function PolicyPicker() {
         </div>
       )}
 
-      {/* Desktop subtitle */}
+      {/* Desktop subtitle + locked toggle */}
       {!isMobile && (
-        <div className="px-4 pb-1" data-tutorial="policies">
+        <div className="px-4 pb-1 flex items-center gap-2" data-tutorial="policies">
           <p className="text-xs text-slate-500">
             Select up to 2 policies, then end your turn. You can also skip by ending with no selections.
           </p>
+          <div className="ml-auto shrink-0">{lockedToggle}</div>
         </div>
       )}
 
