@@ -1531,6 +1531,8 @@ Non-oneShot events now have cooldown periods to prevent rapid repetition. Random
 - Conditional dispatch paragraphs (republic_endures, impeached) varying by game state
 - Ending data consolidated into src/data/endings.ts (shared by GameOverScreen and PresidentialDispatch)
 - New component: PresidentialDispatch
+- Milestones Overview/Detail toggle (consistent with Blocs and Policies sections)
+- End Turn button moved from header to selection summary bar for consistent toggle alignment
 - 130 tests across 7 suites (15 new dispatch tests)
 
 ### v1.6 (February 2026)
