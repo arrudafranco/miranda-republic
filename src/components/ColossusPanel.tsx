@@ -41,7 +41,7 @@ export default function ColossusPanel() {
 
       {/* Patience bar */}
       <div>
-        <Tooltip text="The Colossus's tolerance. Decreases when you defy their interests. Below 20, the Generals waver and the country splits over whether to resist (polarization rises). With narrative 50+, defiance reads as patriotism and builds legitimacy. At 0, the Colossus backs your Rival and legitimacy drains unless you hold the narrative.">
+        <Tooltip text="The Colossus's tolerance. Decreases when you defy their interests. Below 20, the country splits over whether to resist (polarization rises). Generals with loyalty 50+ close ranks behind you. Below 50, the Colossus starts buying officers. With narrative 50+, defiance reads as patriotism and builds legitimacy. At 0, the Colossus backs your Rival and legitimacy drains unless you hold the narrative.">
           <div className="flex justify-between text-xs text-slate-400 mb-1">
             <span id="colossus-patience-label">Patience</span>
             <span>{colossus.patience}</span>

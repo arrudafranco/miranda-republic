@@ -20,13 +20,20 @@ export const SIEGE_NARRATIVE = 55;
 /** Colossus patience below this level means active meddling in Miranda's barracks. */
 export const COLOSSUS_MEDDLING_PATIENCE = 20;
 
+/**
+ * Generals at or above this loyalty close ranks against foreign pressure.
+ * Below it, enough officers are disaffected for the Colossus to buy.
+ */
+export const GENERALS_PATRIOTIC_LOYALTY = 50;
+
 /** With the public story on your side, standing up to the Colossus reads as patriotism. */
 export const PATRIOTIC_RALLY_NARRATIVE = 50;
 
 export type InstabilityEffect =
   | 'price_crime' | 'price_collapse' | 'fracture' | 'siege_politics'
   | 'foreign_meddling' | 'foreign_destabilization'
-  | 'collaboration_divide' | 'patriotic_rally';
+  | 'collaboration_divide' | 'patriotic_rally'
+  | 'generals_close_ranks' | 'generals_bought';
 
 /** True when the ruler is positioned to profit from an us-against-them climate. */
 export function isSiegePolitics(state: GameState): boolean {
@@ -69,8 +76,15 @@ export function processInstabilityTurn(state: GameState): InstabilityEffect[] {
     const rally = res.narrative >= PATRIOTIC_RALLY_NARRATIVE;
     const slowTick = state.turn % 2 === 0;
 
-    // Officers trained abroad start taking calls from the embassy
-    state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
+    // The army goes one of two ways. Officers who already stand with the government close ranks
+    // around the flag. Disaffected ones start taking calls from the embassy.
+    if (state.blocs.military.loyalty >= GENERALS_PATRIOTIC_LOYALTY) {
+      if (slowTick) state.blocs.military.loyalty = clamp(state.blocs.military.loyalty + 1, 0, 100);
+      applied.push('generals_close_ranks');
+    } else {
+      state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
+      applied.push('generals_bought');
+    }
 
     if (destabilizing) {
       // Open destabilization: the opposition is funded and the government painted as a pariah.

@@ -95,14 +95,12 @@ describe('Instability at the extremes', () => {
     expect(s.resources.legitimacy).toBe(59);
   });
 
-  it('a Colossus short on patience erodes the Generals loyalty and divides the country', () => {
+  it('a Colossus short on patience divides the country', () => {
     const s = calmState();
     s.colossus.patience = 15;
-    const loyalty = s.blocs.military.loyalty;
     const rival = s.rival.power;
     s.turn = 3;
-    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling', 'collaboration_divide']);
-    expect(s.blocs.military.loyalty).toBe(loyalty - 1);
+    expect(processInstabilityTurn(s)).toContain('collaboration_divide');
     expect(s.resources.polarization).toBe(40);
     s.turn = 4;
     processInstabilityTurn(s);
@@ -112,12 +110,36 @@ describe('Instability at the extremes', () => {
     expect(s.rival.power).toBe(rival);
   });
 
+  it('loyal Generals close ranks against foreign pressure', () => {
+    const s = calmState();
+    s.colossus.patience = 15;
+    s.blocs.military.loyalty = 55;
+    s.turn = 3;
+    expect(processInstabilityTurn(s)).toContain('generals_close_ranks');
+    expect(s.blocs.military.loyalty).toBe(55);
+    s.turn = 4;
+    processInstabilityTurn(s);
+    expect(s.blocs.military.loyalty).toBe(56);
+  });
+
+  it('disaffected Generals can be bought by the Colossus', () => {
+    const s = calmState();
+    s.colossus.patience = 15;
+    s.blocs.military.loyalty = 45;
+    s.turn = 3;
+    expect(processInstabilityTurn(s)).toContain('generals_bought');
+    expect(s.blocs.military.loyalty).toBe(44);
+    s.turn = 4;
+    processInstabilityTurn(s);
+    expect(s.blocs.military.loyalty).toBe(43);
+  });
+
   it('standing up to the Colossus builds legitimacy when you own the story', () => {
     const s = calmState();
     s.colossus.patience = 15;
     s.resources.narrative = 55;
     s.turn = 4;
-    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling', 'collaboration_divide', 'patriotic_rally']);
+    expect(processInstabilityTurn(s)).toContain('patriotic_rally');
     expect(s.resources.legitimacy).toBe(61);
     expect(s.resources.polarization).toBe(41);
   });
@@ -125,11 +147,11 @@ describe('Instability at the extremes', () => {
   it('a Colossus out of patience drains legitimacy and backs the Rival', () => {
     const s = calmState();
     s.colossus.patience = 0;
-    const loyalty = s.blocs.military.loyalty;
     const rival = s.rival.power;
     s.turn = 3;
-    expect(processInstabilityTurn(s)).toEqual(['foreign_destabilization', 'collaboration_divide']);
-    expect(s.blocs.military.loyalty).toBe(loyalty - 1);
+    const effects = processInstabilityTurn(s);
+    expect(effects).toContain('foreign_destabilization');
+    expect(effects).not.toContain('patriotic_rally');
     expect(s.resources.legitimacy).toBe(59);
     expect(s.rival.power).toBe(rival + 1);
   });

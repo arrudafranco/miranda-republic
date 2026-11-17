@@ -843,9 +843,11 @@ Before v1.8, very high inflation and polarization mostly helped the Rival throug
 | Inflation 20+ | Legitimacy -1, Underworld power +1 | Impeachment (legitimacy 0), Shadow Republic |
 | Polarization 75+ (fracture) | Legitimacy -1, Dread +1, Generals loyalty -1 | Impeachment, and the coup condition (low Generals loyalty with high dread) |
 | Polarization 75+ with Mobilization 60+ and Narrative 55+ (siege politics) | Dread +1 only | A stable but fear-based government |
-| Colossus patience below 20 (meddling) | Generals loyalty -1. Polarization +1 every other turn | The coup condition, a divided country |
+| Colossus patience below 20 (meddling) | Polarization +1 every other turn | A divided country |
+| ...and Generals loyalty 50+ (closing ranks) | Generals loyalty +1 every other turn | A patriotic army behind the government |
+| ...and Generals loyalty below 50 (bought officers) | Generals loyalty -1 per turn | The coup condition |
 | ...with Narrative 50+ (patriotic rally) | Also Legitimacy +1 every other turn | A defiant government with real standing |
-| Colossus patience at 0 (destabilization) | Generals loyalty -1, Rival +1, Polarization +1 every other turn, Legitimacy -1 (on top of the existing Capital -15, Inflation +2, Banks -5) | Coup, impeachment, rival victory |
+| Colossus patience at 0 (destabilization) | All of the above, plus Rival +1 and Legitimacy -1 (on top of the existing Capital -15, Inflation +2, Banks -5) | Coup, impeachment, rival victory |
 | ...with Narrative 50+ (patriotic rally) | The Legitimacy drain is cancelled | Survival under siege |
 
 **Siege politics.** High polarization does not always weaken a ruler. A leader with an energized base and command of the public story can use an us-against-them climate to consolidate support. In that case legitimacy and the Generals hold, and only dread rises. The route is open but narrow: mobilization and narrative are both hard to keep high, the Rival still feeds on polarization, centrist options stay expensive, and climbing dread moves the government toward the coup threshold and away from the better endings. The game presents this as a real strategy with a real price and does not label it.
@@ -853,6 +855,8 @@ Before v1.8, very high inflation and polarization mostly helped the Rival throug
 **Foreign pressure.** Before this change, a hostile Colossus hurt Miranda only through the economy and its crisis chain. It now also works on the barracks, and at zero patience on the government's standing and the opposition's fortunes. Defiance remains a viable path, because refusing the ultimatum still rallies the Generals, the Unions and the public. The player now has to keep that rally alive against a steady pull the other way.
 
 Confrontation cuts two ways at home. It divides the country between those who would resist and those who would accommodate, so polarization rises in every case. It can also raise the government's standing, but only when the government controls the public story (narrative 50+). A defiant president who has lost the narrative gets the division without the patriotism.
+
+The army splits the same way. An officer corps that already stands with the government (loyalty 50+) treats foreign pressure as an insult and closes ranks. A disaffected one (below 50) contains enough ambitious or resentful officers for the Colossus to cultivate. The threshold makes the Generals' loyalty a thing to secure before picking a fight abroad, and it means the same confrontation can end with a patriotic army or a foreign-backed coup depending on how the president treated the barracks beforehand.
 
 The effects stack. Two new briefing vignette pools announce the crossing of inflation 20 and polarization 75, and the resource tooltips state the thresholds.
 
@@ -1741,10 +1745,10 @@ The endings collectively pose the question: "What does it mean to govern? And fo
 - Instability at the extremes: very high inflation drains legitimacy and grows Underworld power, very high polarization drains legitimacy, raises dread and erodes the Generals' loyalty (`src/engine/instability.ts`)
 - Policy repeat rules: 14 one-time policies, 28 with cooldowns, 12 available any time (`src/data/policyRepeat.ts`, `src/engine/policyRepeat.ts`)
 - The Gentlemen's Accord costs 45 capital, the most expensive non-milestone policy. It is repeatable any time and the loyalty it buys drains away
-- Colossus pressure: patience below 20 erodes the Generals' loyalty and raises polarization, patience at 0 also drains legitimacy and feeds the Rival. With narrative 50+, defiance builds legitimacy (or cancels the drain at patience 0)
+- Colossus pressure: patience below 20 raises polarization, rallies Generals who are loyal (50+) and erodes those who are not, patience at 0 also drains legitimacy and feeds the Rival. With narrative 50+, defiance builds legitimacy (or cancels the drain at patience 0)
 - Tutorial mentions repeat rules
 - Siege politics: with mobilization 60+ and narrative 55+, extreme polarization raises dread but does not drain legitimacy
-- 181 tests across 9 suites (26 in `engine-balance-v11.test.ts`, 25 in `engine-stability-repeat.test.ts`)
+- 183 tests across 9 suites (26 in `engine-balance-v11.test.ts`, 27 in `engine-stability-repeat.test.ts`)
 - The unfinished map and policy tree prototype was not released. It is archived on the local branch `archive/map-experiment`
 
 ### v1.7 (February 2026)

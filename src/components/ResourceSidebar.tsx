@@ -113,7 +113,7 @@ function getDynamicTooltip(
       return `Economic pain (${value}/30). ${inflNote} At 15+, feeds polarization and Underworld power. At 20+, drains legitimacy every turn.`;
     }
     case 'dread':
-      return `State fear (${value}/100). Combined with low military loyalty (< 20), triggers a coup at dread > ${coupDreadThreshold}. Extreme polarization and a Colossus short on patience (below 20) both wear down the Generals.`;
+      return `State fear (${value}/100). Combined with low military loyalty (< 20), triggers a coup at dread > ${coupDreadThreshold}. Extreme polarization wears down the Generals. So does a Colossus short on patience (below 20), but only if their loyalty is already under 50.`;
     default:
       return '';
   }
