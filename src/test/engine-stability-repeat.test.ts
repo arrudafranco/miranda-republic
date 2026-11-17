@@ -95,6 +95,28 @@ describe('Instability at the extremes', () => {
     expect(s.resources.legitimacy).toBe(59);
   });
 
+  it('a Colossus short on patience erodes the Generals loyalty', () => {
+    const s = calmState();
+    s.colossus.patience = 15;
+    const loyalty = s.blocs.military.loyalty;
+    const rival = s.rival.power;
+    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling']);
+    expect(s.blocs.military.loyalty).toBe(loyalty - 1);
+    expect(s.resources.legitimacy).toBe(60);
+    expect(s.rival.power).toBe(rival);
+  });
+
+  it('a Colossus out of patience also drains legitimacy and backs the Rival', () => {
+    const s = calmState();
+    s.colossus.patience = 0;
+    const loyalty = s.blocs.military.loyalty;
+    const rival = s.rival.power;
+    expect(processInstabilityTurn(s)).toEqual(['foreign_destabilization']);
+    expect(s.blocs.military.loyalty).toBe(loyalty - 1);
+    expect(s.resources.legitimacy).toBe(59);
+    expect(s.rival.power).toBe(rival + 1);
+  });
+
   it('both extremes stack and move the state toward impeachment and coup', () => {
     const s = calmState();
     s.resources.inflation = 25;
@@ -227,6 +249,26 @@ describe('Policy repeat rules', () => {
       'Ready in 4 turns',
     ]);
     for (const t of texts) expect(t).not.toMatch(/[—:]/);
+  });
+
+  it('The Gentlemen\'s Accord can be repeated, at full price each time, and its loyalty is rented', () => {
+    const s = calmState();
+    s.resources.polarization = 60;
+    seedRng(3);
+    resolveAction(s, { policyId: 'gentlemens_accord' });
+    s.turn = 3;
+    expect(canEnactAgain(s, 'gentlemens_accord')).toBe(true);
+    resolveAction(s, { policyId: 'gentlemens_accord' });
+    expect(s.resources.capital).toBeLessThanOrEqual(500 - 2 * 45 * 0.7);
+    const rebounds = s.delayedEffects.filter(d => d.sourcePolicyId === 'gentlemens_accord');
+    expect(rebounds.length).toBe(2);
+    // Over its lifetime each deal takes back most of the loyalty it bought
+    const accord = POLICIES.find(p => p.id === 'gentlemens_accord')!;
+    const d = accord.effects.delayed!;
+    const bought = accord.effects.blocs.finance!.loyalty!;
+    const drained = d.turns * -(d.blocEffects!.finance!.loyalty!);
+    expect(drained).toBeGreaterThanOrEqual(bought / 2);
+    expect(drained).toBeLessThan(bought);
   });
 
   it('The Gentlemen\'s Accord costs serious capital', () => {

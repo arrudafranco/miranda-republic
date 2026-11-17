@@ -1273,7 +1273,7 @@ export const POLICIES: Policy[] = [
   {
     id: 'gentlemens_accord',
     name: 'The Gentlemen\'s Accord',
-    tooltip: 'A private dinner with the Banks and the Landowners. They call off the op-eds. You call off the reforms. The calm lasts until someone finds the menu.',
+    tooltip: 'A private dinner with the Banks and the Landowners. They call off the op-eds. You call off the reforms. Their gratitude is rented, not owned, and the calm lasts until someone finds the menu.',
     category: 'backroom',
     minPolarization: 30,
     maxPolarization: 100,
@@ -1284,7 +1284,7 @@ export const POLICIES: Policy[] = [
       blocs: {
         finance:  { loyalty: +10 },
         agri:     { loyalty: +8 },
-        industry: { loyalty: +5 },
+        industry: { loyalty: +6 },
         labor:    { loyalty: -8 },
         academy:  { loyalty: -4 },
       },
@@ -1293,10 +1293,16 @@ export const POLICIES: Policy[] = [
         narrative: -6,
         legitimacy: -3,
       },
-      // The truce frays. Most of the calm comes back as resentment.
+      // The truce frays. Most of the calm comes back as resentment, and the bought loyalty drains away.
+      // What stays is the bill and the workers' anger.
       delayed: {
         turns: 6,
         perTurn: { polarization: +1 },
+        blocEffects: {
+          finance:  { loyalty: -1 },
+          agri:     { loyalty: -1 },
+          industry: { loyalty: -1 },
+        },
       },
       discovery: {
         chance: 0.3,

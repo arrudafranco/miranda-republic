@@ -29,7 +29,6 @@ export const POLICY_REPEAT_RULES: Record<string, PolicyRepeatRule> = {
   // === Cooldowns: programs, campaigns, deals ===
   international_summit: 12,
   amnesty_program: 8,
-  gentlemens_accord: 8,
   sovereignty_trade_package: 6,
   green_industrial_policy: 6,
   national_unity_festival: 6,
@@ -59,5 +58,6 @@ export const POLICY_REPEAT_RULES: Record<string, PolicyRepeatRule> = {
 
   // === No entry (any time): austerity_budget, emergency_austerity, backroom_deal,
   // informal_channels, offshore_accounts, blackmail_dossier, scapegoat_campaign,
-  // counter_propaganda_bureau, populist_pivot, community_policing, foreign_aid_package ===
+  // counter_propaganda_bureau, populist_pivot, community_policing, foreign_aid_package,
+  // gentlemens_accord (a desperate government can keep buying truces, each at full price) ===
 };

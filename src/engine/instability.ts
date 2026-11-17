@@ -4,6 +4,7 @@ import { clamp } from '../utils/helpers';
 // === Instability at the extremes (v1.8) ===
 // Very high inflation and very high polarization do more than help the Rival at the ballot box.
 // They erode the government's standing, feed the illicit economy, and unsettle the barracks.
+// So does a superpower that has run out of patience.
 
 /** Inflation at or above this level grows the illicit economy (every other turn). */
 export const INFLATION_CRIME_THRESHOLD = 15;
@@ -16,7 +17,12 @@ export const POLARIZATION_EXTREME_THRESHOLD = 75;
 export const SIEGE_MOBILIZATION = 60;
 export const SIEGE_NARRATIVE = 55;
 
-export type InstabilityEffect = 'price_crime' | 'price_collapse' | 'fracture' | 'siege_politics';
+/** Colossus patience below this level means active meddling in Miranda's barracks. */
+export const COLOSSUS_MEDDLING_PATIENCE = 20;
+
+export type InstabilityEffect =
+  | 'price_crime' | 'price_collapse' | 'fracture' | 'siege_politics'
+  | 'foreign_meddling' | 'foreign_destabilization';
 
 /** True when the ruler is positioned to profit from an us-against-them climate. */
 export function isSiegePolitics(state: GameState): boolean {
@@ -52,6 +58,19 @@ export function processInstabilityTurn(state: GameState): InstabilityEffect[] {
       state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
       applied.push('fracture');
     }
+  }
+
+  if (state.colossus.patience <= 0) {
+    // Open destabilization: friendly officers are courted, the opposition is funded,
+    // and the government is painted as a pariah
+    state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
+    res.legitimacy = clamp(res.legitimacy - 1, 0, 100);
+    state.rival.power = clamp(state.rival.power + 1, 0, 100);
+    applied.push('foreign_destabilization');
+  } else if (state.colossus.patience < COLOSSUS_MEDDLING_PATIENCE) {
+    // Quiet meddling: officers trained abroad start taking calls from the embassy
+    state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
+    applied.push('foreign_meddling');
   }
 
   return applied;

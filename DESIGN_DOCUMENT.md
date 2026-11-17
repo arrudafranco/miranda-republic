@@ -254,8 +254,8 @@ Every policy belongs to one of three pacing classes, defined in one table (`src/
 | Class | Meaning | Policies |
 |---|---|---|
 | **One time only** (14) | Laws, institutions and founding acts | Constitutional Amendment, Constitutional Convention, Electoral Reform, Sovereign Wealth Fund, Sovereign Investment Fund, Trade Independence, Universal Basic Income, Paramilitary Disbandment, Right to Strike, Platform Worker Rights, Gig Worker Protections, Anti-Money Laundering, Surveillance Network, Whistleblower Hotline |
-| **Cooldown** (29) | Programs, campaigns and deals. N turns must pass before re-enactment | 12 turns: International Summit. 8: Amnesty Program, The Gentlemen's Accord. 6: Sovereignty Trade Package, Green Industrial Policy, National Unity Festival, Tourism Initiative, Trade Liberalization, Minimum Wage Hike, Apprenticeship Program, Palace Coup Insurance, Shadow Cabinet, Border Militarization, Embassy Expansion, Colossus Trade Deal. 4: Operation Clean Sweep, Black Market Crackdown, Microfinance Program, Historical Revisionism, Judicial Appointment, Central Bank Autonomy, Monetary Sovereignty Decree, Pulpit and Plaza. 3: Public Reconciliation Forum, State Media Blitz, Interest Rate Override, Price Controls Decree, Stimulus Package, Bread First |
-| **Any time** (11) | Emergency levers, favours and cheap talk | Austerity Budget, Emergency Austerity, Backroom Appropriations, Informal Channels, Offshore Accounts, Blackmail Dossier, Scapegoat Campaign, Counter-Propaganda Bureau, Populist Pivot, Community Policing, Foreign Aid Package |
+| **Cooldown** (28) | Programs, campaigns and deals. N turns must pass before re-enactment | 12 turns: International Summit. 8: Amnesty Program. 6: Sovereignty Trade Package, Green Industrial Policy, National Unity Festival, Tourism Initiative, Trade Liberalization, Minimum Wage Hike, Apprenticeship Program, Palace Coup Insurance, Shadow Cabinet, Border Militarization, Embassy Expansion, Colossus Trade Deal. 4: Operation Clean Sweep, Black Market Crackdown, Microfinance Program, Historical Revisionism, Judicial Appointment, Central Bank Autonomy, Monetary Sovereignty Decree, Pulpit and Plaza. 3: Public Reconciliation Forum, State Media Blitz, Interest Rate Override, Price Controls Decree, Stimulus Package, Bread First |
+| **Any time** (12) | Emergency levers, favours and cheap talk | The Gentlemen's Accord, Austerity Budget, Emergency Austerity, Backroom Appropriations, Informal Channels, Offshore Accounts, Blackmail Dossier, Scapegoat Campaign, Counter-Propaganda Bureau, Populist Pivot, Community Policing, Foreign Aid Package |
 
 A cooldown of N means a policy enacted on turn T is available again on turn T+N. The state field `policyLastEnacted` records the turn of last enactment. A blocked or unaffordable attempt changes nothing and does not start a cooldown. The policy card shows "Already enacted", "Ready next turn" or "Ready in N turns", and the full effects text ends with the rule ("One time only", "Repeatable every N turns", "Repeatable any time").
 
@@ -553,9 +553,10 @@ All backroom policies bypass congressional cost modifiers and sensitivity scalin
 Three non-centrist policies that lower polarization quickly, each with a different bill attached. None is priced as centrist, so they stay affordable (and free of backlash) when polarization is high, which is exactly when they are needed.
 
 **The Gentlemen's Accord** (Backroom, Cost: 45, Non-centrist, Pol: 30-100, Unlock: Polarization >= 40)
-- Blocs: Banks +10, Landowners +8, Factories +5, Unions -8, Scholars -4
+- Blocs: Banks +10, Landowners +8, Factories +6, Unions -8, Scholars -4
 - Resources: Polarization -8, Narrative -6, Legitimacy -3
-- Delayed: Polarization +1/turn for 6 turns (net effect -2)
+- Delayed: for 6 turns, Polarization +1/turn (net effect -2) and Banks, Landowners, Factories -1 loyalty/turn (net loyalty Banks +4, Landowners +2, Factories 0)
+- Repeatable any time. Each deal costs full price, adds its own rebound and rolls its own scandal risk
 - Discovery: 30% chance, 3-turn delay. If exposed: Heralds -10, Unions -5, Polarization +10, Legitimacy -6, Rival +5
 
 **Pulpit and Plaza** (Rhetoric, Cost: 5, Non-centrist, Pol: 20-100, Unlock: Clergy loyalty >= 45)
@@ -842,8 +843,12 @@ Before v1.8, very high inflation and polarization mostly helped the Rival throug
 | Inflation 20+ | Legitimacy -1, Underworld power +1 | Impeachment (legitimacy 0), Shadow Republic |
 | Polarization 75+ (fracture) | Legitimacy -1, Dread +1, Generals loyalty -1 | Impeachment, and the coup condition (low Generals loyalty with high dread) |
 | Polarization 75+ with Mobilization 60+ and Narrative 55+ (siege politics) | Dread +1 only | A stable but fear-based government |
+| Colossus patience below 20 (meddling) | Generals loyalty -1 | The coup condition |
+| Colossus patience at 0 (destabilization) | Generals loyalty -1, Legitimacy -1, Rival +1 (on top of the existing Capital -15, Inflation +2, Banks -5) | Coup, impeachment, rival victory |
 
 **Siege politics.** High polarization does not always weaken a ruler. A leader with an energized base and command of the public story can use an us-against-them climate to consolidate support. In that case legitimacy and the Generals hold, and only dread rises. The route is open but narrow: mobilization and narrative are both hard to keep high, the Rival still feeds on polarization, centrist options stay expensive, and climbing dread moves the government toward the coup threshold and away from the better endings. The game presents this as a real strategy with a real price and does not label it.
+
+**Foreign pressure.** Before this change, a hostile Colossus hurt Miranda only through the economy and its crisis chain. It now also works on the barracks, and at zero patience on the government's standing and the opposition's fortunes. Defiance remains a viable path, because refusing the ultimatum still rallies the Generals, the Unions and the public. The player now has to keep that rally alive against a steady pull the other way.
 
 The effects stack. Two new briefing vignette pools announce the crossing of inflation 20 and polarization 75, and the resource tooltips state the thresholds.
 
@@ -1640,7 +1645,7 @@ The patch keeps the asymmetry and adds exits that each say something different a
 - **Civic cooling** rewards being trusted and not feeding the fire. It is slow on purpose and any flare-up resets it.
 - **Material conditions** cut both ways. Severe inflation heats polarization. Low inflation lowers the legitimacy needed for cooling and makes Bread First effective. The claim modelled here is narrow: solving widely shared daily problems makes cultural conflict less able to set the agenda. The game does not claim that any particular kind of program depolarizes by itself.
 - **Program design can divide.** The Cut-off Line event models the sharp eligibility cliff, where households just above and just below a threshold come to resent different targets. The comparative welfare literature debates how targeting and universalism affect political coalitions (see Korpi and Palme, 1998). The game treats it as a design question with a price tag, not a verdict.
-- **Elite pacts** (The Gentlemen's Accord) buy quiet quickly and return most of it. They also widen the gap that drives the Two Mirandas pressure, and they can be exposed.
+- **Elite pacts** (The Gentlemen's Accord) buy quiet quickly and return most of it. The loyalty they buy is rented and drains away over the following turns, while the workers' resentment stays. A government in trouble can keep signing them, turn after turn. Doing so empties the treasury, stacks the rebounds, multiplies the chance of exposure and widens the gap that drives the Two Mirandas pressure, without ever securing lasting support.
 - **Coalition broadening** (Pulpit and Plaza, Bread First) works in the short run and spends the goodwill of the most engaged supporters. If the Unions, Scholars and Artists are neglected for long enough, the Abandoned Base pressure pushes polarization back up.
 
 Every fast route therefore feeds one of the slow heating pressures. Temporary calm is available. Durable calm has to be earned through legitimacy, restraint and material conditions. The mechanics describe trade-offs and take no position on which coalition strategy is right.
@@ -1730,11 +1735,12 @@ The endings collectively pose the question: "What does it mean to govern? And fo
 - Polarization tooltip now states how polarization cools and heats
 - Save migration for the three new state fields
 - Instability at the extremes: very high inflation drains legitimacy and grows Underworld power, very high polarization drains legitimacy, raises dread and erodes the Generals' loyalty (`src/engine/instability.ts`)
-- Policy repeat rules: 14 one-time policies, 29 with cooldowns, 11 available any time (`src/data/policyRepeat.ts`, `src/engine/policyRepeat.ts`)
-- The Gentlemen's Accord costs 45 capital, the most expensive non-milestone policy
+- Policy repeat rules: 14 one-time policies, 28 with cooldowns, 12 available any time (`src/data/policyRepeat.ts`, `src/engine/policyRepeat.ts`)
+- The Gentlemen's Accord costs 45 capital, the most expensive non-milestone policy. It is repeatable any time and the loyalty it buys drains away
+- Colossus pressure: patience below 20 erodes the Generals' loyalty, patience at 0 also drains legitimacy and feeds the Rival
 - Tutorial mentions repeat rules
 - Siege politics: with mobilization 60+ and narrative 55+, extreme polarization raises dread but does not drain legitimacy
-- 176 tests across 9 suites (26 in `engine-balance-v11.test.ts`, 20 in `engine-stability-repeat.test.ts`)
+- 179 tests across 9 suites (26 in `engine-balance-v11.test.ts`, 23 in `engine-stability-repeat.test.ts`)
 - The unfinished map and policy tree prototype was not released. It is archived on the local branch `archive/map-experiment`
 
 ### v1.7 (February 2026)
