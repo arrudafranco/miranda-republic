@@ -247,6 +247,20 @@ Some policies have additional requirements:
 - **requiresSyndicateLoyalty**: Underworld loyalty must be at or above a threshold (e.g., Informal Channels requires 40).
 - **requiresMajority**: The player must have a friendly congressional majority (e.g., Constitutional Amendment, Electoral Reform).
 
+### Repeat Rules (v1.8)
+
+Every policy belongs to one of three pacing classes, defined in one table (`src/data/policyRepeat.ts`) and enforced by `src/engine/policyRepeat.ts`.
+
+| Class | Meaning | Policies |
+|---|---|---|
+| **One time only** (14) | Laws, institutions and founding acts | Constitutional Amendment, Constitutional Convention, Electoral Reform, Sovereign Wealth Fund, Sovereign Investment Fund, Trade Independence, Universal Basic Income, Paramilitary Disbandment, Right to Strike, Platform Worker Rights, Gig Worker Protections, Anti-Money Laundering, Surveillance Network, Whistleblower Hotline |
+| **Cooldown** (29) | Programs, campaigns and deals. N turns must pass before re-enactment | 12 turns: International Summit. 8: Amnesty Program, The Gentlemen's Accord. 6: Sovereignty Trade Package, Green Industrial Policy, National Unity Festival, Tourism Initiative, Trade Liberalization, Minimum Wage Hike, Apprenticeship Program, Palace Coup Insurance, Shadow Cabinet, Border Militarization, Embassy Expansion, Colossus Trade Deal. 4: Operation Clean Sweep, Black Market Crackdown, Microfinance Program, Historical Revisionism, Judicial Appointment, Central Bank Autonomy, Monetary Sovereignty Decree, Pulpit and Plaza. 3: Public Reconciliation Forum, State Media Blitz, Interest Rate Override, Price Controls Decree, Stimulus Package, Bread First |
+| **Any time** (11) | Emergency levers, favours and cheap talk | Austerity Budget, Emergency Austerity, Backroom Appropriations, Informal Channels, Offshore Accounts, Blackmail Dossier, Scapegoat Campaign, Counter-Propaganda Bureau, Populist Pivot, Community Policing, Foreign Aid Package |
+
+A cooldown of N means a policy enacted on turn T is available again on turn T+N. The state field `policyLastEnacted` records the turn of last enactment. A blocked or unaffordable attempt changes nothing and does not start a cooldown. The policy card shows "Already enacted", "Ready next turn" or "Ready in N turns", and the full effects text ends with the rule ("One time only", "Repeatable every N turns", "Repeatable any time").
+
+**Design rationale:** Without pacing, the strongest play was to repeat one cheap policy every turn (for example the Reconciliation Forum at cost 2). That flattened the decision space and made one-off acts like a constitutional reform behave like a tap. The three classes follow what the actions are. A law is passed once. A program or a deal needs time before it can be credibly repeated. Emergency cuts, favours and speeches are always available, which also guarantees the player is never left without a move.
+
 ### Progressive Unlock System
 
 Not all 49 policies are available from Turn 1. 18 "starting" policies are available immediately. The remaining 31 unlock progressively through turn milestones, bloc loyalty thresholds, and resource conditions. This creates a sense of discovery and forward movement, preventing the player from being overwhelmed by a wall of 49 options on Turn 1.
@@ -538,7 +552,7 @@ All backroom policies bypass congressional cost modifiers and sensitivity scalin
 
 Three non-centrist policies that lower polarization quickly, each with a different bill attached. None is priced as centrist, so they stay affordable (and free of backlash) when polarization is high, which is exactly when they are needed.
 
-**The Gentlemen's Accord** (Backroom, Cost: 15, Non-centrist, Pol: 30-100, Unlock: Polarization >= 40)
+**The Gentlemen's Accord** (Backroom, Cost: 45, Non-centrist, Pol: 30-100, Unlock: Polarization >= 40)
 - Blocs: Banks +10, Landowners +8, Factories +5, Unions -8, Scholars -4
 - Resources: Polarization -8, Narrative -6, Legitimacy -3
 - Delayed: Polarization +1/turn for 6 turns (net effect -2)
@@ -817,6 +831,23 @@ At the end of every turn, `processPolarizationTurn` (in `src/engine/polarization
 Any rise in polarization during a turn (from a policy, an event, a rebound, or one of the heating pressures) resets the calm streak. A perfectly calm 48-turn term can therefore cool by roughly 23 points at most, and realistic play far less.
 
 State fields: `polarizationCalmStreak`, `polarizationPressures` (active at end of last turn), `polarizationPressureOnsets` (started last turn). Onsets drive four new briefing vignette pools so the player learns each pressure the first time it appears. The polarization tooltip states the cooling and heating conditions explicitly.
+
+### Instability at the Extremes (v1.8)
+
+Before v1.8, very high inflation and polarization mostly helped the Rival through ordinary politics. `processInstabilityTurn` (in `src/engine/instability.ts`, end of turn) adds the non-electoral consequences.
+
+| Condition | Effect per turn | Leads toward |
+|---|---|---|
+| Inflation 15-19 | Underworld power +1 every other turn | A stronger illicit economy |
+| Inflation 20+ | Legitimacy -1, Underworld power +1 | Impeachment (legitimacy 0), Shadow Republic |
+| Polarization 75+ (fracture) | Legitimacy -1, Dread +1, Generals loyalty -1 | Impeachment, and the coup condition (low Generals loyalty with high dread) |
+| Polarization 75+ with Mobilization 60+ and Narrative 55+ (siege politics) | Dread +1 only | A stable but fear-based government |
+
+**Siege politics.** High polarization does not always weaken a ruler. A leader with an energized base and command of the public story can use an us-against-them climate to consolidate support. In that case legitimacy and the Generals hold, and only dread rises. The route is open but narrow: mobilization and narrative are both hard to keep high, the Rival still feeds on polarization, centrist options stay expensive, and climbing dread moves the government toward the coup threshold and away from the better endings. The game presents this as a real strategy with a real price and does not label it.
+
+The effects stack. Two new briefing vignette pools announce the crossing of inflation 20 and polarization 75, and the resource tooltips state the thresholds.
+
+**Design rationale:** Runaway prices and deep division are associated with governments falling outside the electoral calendar, and with growth in smuggling, black markets and protection economies when the official economy stops working. The effects are small per turn and only bite at the extremes, so they punish neglect without creating a sudden death. In 500-seed random play on Standard, impeachments rose from 7% to 14% of games.
 
 ### Routes to Lower Polarization
 
@@ -1698,7 +1729,12 @@ The endings collectively pose the question: "What does it mean to govern? And fo
 - 8 new briefing vignettes that introduce each polarization pressure when it starts
 - Polarization tooltip now states how polarization cools and heats
 - Save migration for the three new state fields
-- 156 tests across 8 suites (26 new in `engine-balance-v11.test.ts`)
+- Instability at the extremes: very high inflation drains legitimacy and grows Underworld power, very high polarization drains legitimacy, raises dread and erodes the Generals' loyalty (`src/engine/instability.ts`)
+- Policy repeat rules: 14 one-time policies, 29 with cooldowns, 11 available any time (`src/data/policyRepeat.ts`, `src/engine/policyRepeat.ts`)
+- The Gentlemen's Accord costs 45 capital, the most expensive non-milestone policy
+- Tutorial mentions repeat rules
+- Siege politics: with mobilization 60+ and narrative 55+, extreme polarization raises dread but does not drain legitimacy
+- 176 tests across 9 suites (26 in `engine-balance-v11.test.ts`, 20 in `engine-stability-repeat.test.ts`)
 - The unfinished map and policy tree prototype was not released. It is archived on the local branch `archive/map-experiment`
 
 ### v1.7 (February 2026)

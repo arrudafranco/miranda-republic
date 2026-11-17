@@ -323,6 +323,16 @@ const POLARIZATION_BELOW_30 = [
   'A debate between opposition and government supporters ended with handshakes. A small thing. It matters.',
 ];
 
+// Instability at the extremes (v1.8)
+const INFLATION_CROSS_20 = [
+  'Shopkeepers have stopped printing price tags. The Underworld has started printing its own, and people trust those more than yours.',
+  'A month of wages now buys a week of groceries. Faith in the government is draining at about the same rate, and the smugglers are hiring.',
+];
+const POLARIZATION_CROSS_75 = [
+  'Half the country no longer calls you President. The other half no longer calls them countrymen. In the barracks, officers have started asking which half they serve.',
+  'Rival crowds met on the Avenue of the Republic and neither went home. Your legitimacy is fraying, fear is rising, and the Generals are watching the clock.',
+];
+
 // Slow polarization pressures (v1.1). Each fires when the pressure starts.
 const POLARIZATION_COOLING = [
   'A quiet month. The talk shows ran out of outrage and aired a cooking segment. Tempers cool when the government is trusted and nobody feeds the fire.',
@@ -468,6 +478,14 @@ export function generateBriefingItems(state: GameState): { items: BriefingItem[]
   }
   if (res.capital < 20 && prev.capital >= 20) {
     candidates.push({ type: 'resource', text: randomChoice(CAPITAL_BELOW_20), tone: 'negative', priority: 68 });
+  }
+
+  // 5a-i. Instability thresholds
+  if (res.inflation >= 20 && prev.inflation < 20) {
+    candidates.push({ type: 'resource', text: randomChoice(INFLATION_CROSS_20), tone: 'negative', priority: 84 });
+  }
+  if (res.polarization >= 75 && prev.polarization < 75) {
+    candidates.push({ type: 'resource', text: randomChoice(POLARIZATION_CROSS_75), tone: 'negative', priority: 83 });
   }
 
   // 5a. Slow polarization pressures starting this turn

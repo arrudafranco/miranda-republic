@@ -3,6 +3,7 @@ import { useGameStore } from '../hooks/useGameStore';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { POLICIES } from '../data/policies';
 import { getPolarizationCostMultiplier } from '../engine/polarization';
+import { getRepeatBlock, describeRepeatBlock } from '../engine/policyRepeat';
 import { getCongressCostMultiplier } from '../engine/congress';
 import type { ActionChoice, ActionCategory, Policy } from '../types/actions';
 import type { BlocId } from '../types/blocs';
@@ -66,6 +67,8 @@ export default function PolicyPicker() {
   const submitActions = useGameStore(s => s.submitActions);
   const setPendingActions = useGameStore(s => s.setPendingActions);
   const unlockedPolicyIds = useGameStore(s => s.unlockedPolicyIds);
+  const turn = useGameStore(s => s.turn);
+  const policyLastEnacted = useGameStore(s => s.policyLastEnacted);
   const newlyUnlockedPolicyIds = useGameStore(s => s.newlyUnlockedPolicyIds);
   const { isMobile } = useBreakpoint();
   const glowing = useInactivityGlow(120_000);
@@ -120,6 +123,10 @@ export default function PolicyPicker() {
   }, 0);
 
   function getDisabledReason(policy: typeof POLICIES[number]): string | null {
+    const repeatBlock = getRepeatBlock(policy.id, turn, policyLastEnacted);
+    if (repeatBlock) {
+      return describeRepeatBlock(repeatBlock);
+    }
     if (resources.polarization < policy.minPolarization) {
       return `Needs polarization ${policy.minPolarization}+`;
     }

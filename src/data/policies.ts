@@ -1277,7 +1277,7 @@ export const POLICIES: Policy[] = [
     category: 'backroom',
     minPolarization: 30,
     maxPolarization: 100,
-    capitalCost: 15,
+    capitalCost: 45,
     centrist: false,
     unlockCondition: { type: 'resource', resource: 'polarization', resourceMin: 40, hint: 'When the country is divided enough, the powerful start offering truces. Needs polarization 40+.' },
     effects: {

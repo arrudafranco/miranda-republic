@@ -8,6 +8,7 @@ import { ALL_BLOC_IDS } from '../types/blocs';
 import type { GameState, Difficulty } from '../types/game';
 import type { ActionChoice } from '../types/actions';
 import { seedRng, randomChoice } from '../utils/helpers';
+import { canEnactAgain } from '../engine/policyRepeat';
 
 /** Check all state invariants hold. Returns list of violations. */
 export function checkInvariants(state: GameState): string[] {
@@ -92,7 +93,8 @@ export function runFuzz(difficulty: Difficulty, seeds: number): {
         const available = POLICIES.filter(p =>
           state.resources.polarization >= p.minPolarization &&
           state.resources.polarization <= p.maxPolarization &&
-          state.resources.capital >= p.capitalCost
+          state.resources.capital >= p.capitalCost &&
+          canEnactAgain(state, p.id)
         );
         const actions: ActionChoice[] = [];
         if (available.length > 0) {

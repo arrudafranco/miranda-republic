@@ -1,6 +1,7 @@
 import type { Policy } from '../types/actions';
 import { BLOC_DEFINITIONS } from '../data/blocs';
 import type { BlocId } from '../types/blocs';
+import { describeRepeatRule } from '../engine/policyRepeat';
 
 interface EffectTag {
   text: string;
@@ -171,6 +172,8 @@ export function formatPolicyEffects(policy: Policy): string {
   if (blocParts.length > 0) {
     parts.push(blocParts.join(' . '));
   }
+
+  parts.push(describeRepeatRule(policy.id));
 
   return parts.join('\n');
 }

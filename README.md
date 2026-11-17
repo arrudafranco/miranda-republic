@@ -19,7 +19,7 @@ The desktop UI features switchable Overview/Detail modes for blocs, policies, mi
 - **Styling:** Tailwind CSS v4
 - **Build Tool:** Vite
 - **Language:** TypeScript
-- **Testing:** Vitest with seedable PRNG (156 unit tests across 8 suites, including 3,000-seed fuzz across 3 difficulty levels) + cross-browser smoke tests (Chromium, Firefox, WebKit)
+- **Testing:** Vitest with seedable PRNG (176 unit tests across 9 suites, including 3,000-seed fuzz across 3 difficulty levels) + cross-browser smoke tests (Chromium, Firefox, WebKit)
 
 ## Local Development
 
@@ -52,7 +52,7 @@ src/
 ## Testing
 
 ```bash
-npm test              # 156 unit tests (engine logic, milestones, briefing, fuzz, balance)
+npm test              # 176 unit tests (engine logic, milestones, briefing, fuzz, balance)
 npm run test:browsers # Cross-browser smoke tests (requires dev server running)
 ```
 

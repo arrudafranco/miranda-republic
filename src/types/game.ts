@@ -127,6 +127,7 @@ export interface GameState {
   // Streak trackers
   unionLoyaltyAbove70Streak: number;    // Consecutive turns with union loyalty > 70
   highPolarizationStreak: number;       // Consecutive turns with polarization > 60
+  policyLastEnacted: Record<string, number>; // Turn each policy was last enacted (repeat rules)
   polarizationCalmStreak: number;       // Consecutive calm turns (no rise, legitimate government)
   polarizationPressures: PolarizationPressure[];      // Slow pressures active at end of last turn
   polarizationPressureOnsets: PolarizationPressure[]; // Pressures that started last turn (for briefings)

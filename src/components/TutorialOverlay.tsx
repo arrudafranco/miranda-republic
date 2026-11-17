@@ -59,8 +59,8 @@ const STEPS: TutorialStep[] = [
   // 7. Your Turn
   {
     title: 'Your Turn',
-    body: 'Each turn, a news event may occur. Then you choose policies to enact. Hover over a policy card to see its full effects. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
-    mobileBody: 'Each turn, a news event may occur. Then you choose policies to enact. Tap a policy name to see its full effects. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
+    body: 'Each turn, a news event may occur. Then you choose policies to enact. Hover over a policy card to see its full effects. Some policies can be enacted only once, and others need a few turns before you can use them again. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
+    mobileBody: 'Each turn, a news event may occur. Then you choose policies to enact. Tap a policy name to see its full effects. Some policies can be enacted only once, and others need a few turns before you can use them again. After that, the blocs, the Rival, and the Colossus react. Choose wisely... every action has consequences.',
     spotlight: { desktop: 'policies', mobile: 'tab-actions', mobileTab: 'actions' },
   },
   // 8. Policy Categories

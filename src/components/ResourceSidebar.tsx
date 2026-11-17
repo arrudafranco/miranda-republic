@@ -99,7 +99,7 @@ function getDynamicTooltip(
       } else {
         costNote = 'Centrist policies cost 100% more with 40% backlash risk. Non-centrist policies get cheaper.';
       }
-      return `Societal division (${value}/100). ${costNote} At 60+, centrist backlash risk. Cools slowly (1 point every second calm turn) under a trusted government (legitimacy 60+, or 45+ with inflation at 5 or less). Heats up with inflation at 15+, an unhappy base (Unions, Scholars, Artists), or favoring owners far above workers.`;
+      return `Societal division (${value}/100). ${costNote} At 60+, centrist backlash risk. At 75+, drains legitimacy, raises dread and erodes the Generals' loyalty every turn (with mobilization 60+ and narrative 55+, your base rallies and only dread rises). Cools slowly (1 point every second calm turn) under a trusted government (legitimacy 60+, or 45+ with inflation at 5 or less). Heats up with inflation at 15+, an unhappy base (Unions, Scholars, Artists), or favoring owners far above workers.`;
     }
     case 'inflation': {
       let inflNote: string;
@@ -110,7 +110,7 @@ function getDynamicTooltip(
       } else {
         inflNote = `Adds +${Math.floor(value / 5) * 2} rival growth. Banking crisis chain is active.`;
       }
-      return `Economic pain (${value}/30). ${inflNote}`;
+      return `Economic pain (${value}/30). ${inflNote} At 15+, feeds polarization and Underworld power. At 20+, drains legitimacy every turn.`;
     }
     case 'dread':
       return `State fear (${value}/100). Combined with low military loyalty (< 20), triggers a coup at dread > ${coupDreadThreshold}.`;

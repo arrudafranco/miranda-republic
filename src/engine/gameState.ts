@@ -17,6 +17,8 @@ import { applyNarrativePhase } from './narrative';
 import { processLaborCohesionTurn, getEffectiveLaborPower } from './laborCohesion';
 import { getPolarizationCostMultiplier, getBacklashChance, applyBacklash, processPolarizationTurn } from './polarization';
 import { processInflationTurn } from './inflation';
+import { processInstabilityTurn } from './instability';
+import { canEnactAgain } from './policyRepeat';
 import { computeRippleEffects } from './interactionMatrix';
 import { selectNewsEvent, resolveEvent, checkEndPhaseEvents } from './events';
 import { EVENT_POOL } from '../data/events';
@@ -83,6 +85,7 @@ function createInitialState(difficulty: Difficulty = 'standard'): GameState {
     centralBankIndependence: 60,
     unionLoyaltyAbove70Streak: 0,
     highPolarizationStreak: 0,
+    policyLastEnacted: {},
     polarizationCalmStreak: 0,
     polarizationPressures: [],
     polarizationPressureOnsets: [],
@@ -176,6 +179,7 @@ function resolveAction(state: GameState, action: ActionChoice): void {
     if (state.blocs.syndicate.loyalty < policy.requiresSyndicateLoyalty) return;
   }
   if (policy.requiresMajority && !state.congress.friendlyMajority) return;
+  if (!canEnactAgain(state, policy.id)) return;
 
   // Track policies enacted for milestones
   state.policiesEnactedCount++;
@@ -201,6 +205,7 @@ function resolveAction(state: GameState, action: ActionChoice): void {
   );
   if (state.resources.capital < totalCost) return;
   state.resources.capital = clamp(state.resources.capital - totalCost, 0, 999);
+  state.policyLastEnacted[policy.id] = state.turn;
 
   // Check backlash for centrist policies at high polarization
   const backlashChance = getBacklashChance(state.resources.polarization, policy.centrist);
@@ -475,6 +480,7 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   state.phase = 'end';
   processLaborCohesionTurn(state);
   processPolarizationTurn(state);
+  processInstabilityTurn(state);
 
   // Congressional legitimacy effect
   const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
@@ -672,6 +678,7 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   state.phase = 'end';
   processLaborCohesionTurn(state);
   processPolarizationTurn(state);
+  processInstabilityTurn(state);
 
   // Congressional legitimacy effect
   const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
@@ -890,6 +897,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (saved.unionLoyaltyAbove70Streak === undefined) saved.unionLoyaltyAbove70Streak = 0;
       if (saved.highPolarizationStreak === undefined) saved.highPolarizationStreak = 0;
       if (saved.polarizationCalmStreak === undefined) saved.polarizationCalmStreak = 0;
+      if (!saved.policyLastEnacted) saved.policyLastEnacted = {};
       if (!saved.polarizationPressures) saved.polarizationPressures = [];
       if (!saved.polarizationPressureOnsets) saved.polarizationPressureOnsets = [];
       if (saved.congress && saved.congress.friendlyMajority === undefined) saved.congress.friendlyMajority = false;
