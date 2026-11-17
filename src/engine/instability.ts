@@ -20,9 +20,13 @@ export const SIEGE_NARRATIVE = 55;
 /** Colossus patience below this level means active meddling in Miranda's barracks. */
 export const COLOSSUS_MEDDLING_PATIENCE = 20;
 
+/** With the public story on your side, standing up to the Colossus reads as patriotism. */
+export const PATRIOTIC_RALLY_NARRATIVE = 50;
+
 export type InstabilityEffect =
   | 'price_crime' | 'price_collapse' | 'fracture' | 'siege_politics'
-  | 'foreign_meddling' | 'foreign_destabilization';
+  | 'foreign_meddling' | 'foreign_destabilization'
+  | 'collaboration_divide' | 'patriotic_rally';
 
 /** True when the ruler is positioned to profit from an us-against-them climate. */
 export function isSiegePolitics(state: GameState): boolean {
@@ -60,17 +64,33 @@ export function processInstabilityTurn(state: GameState): InstabilityEffect[] {
     }
   }
 
-  if (state.colossus.patience <= 0) {
-    // Open destabilization: friendly officers are courted, the opposition is funded,
-    // and the government is painted as a pariah
+  if (state.colossus.patience < COLOSSUS_MEDDLING_PATIENCE) {
+    const destabilizing = state.colossus.patience <= 0;
+    const rally = res.narrative >= PATRIOTIC_RALLY_NARRATIVE;
+    const slowTick = state.turn % 2 === 0;
+
+    // Officers trained abroad start taking calls from the embassy
     state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
-    res.legitimacy = clamp(res.legitimacy - 1, 0, 100);
-    state.rival.power = clamp(state.rival.power + 1, 0, 100);
-    applied.push('foreign_destabilization');
-  } else if (state.colossus.patience < COLOSSUS_MEDDLING_PATIENCE) {
-    // Quiet meddling: officers trained abroad start taking calls from the embassy
-    state.blocs.military.loyalty = clamp(state.blocs.military.loyalty - 1, 0, 100);
-    applied.push('foreign_meddling');
+
+    if (destabilizing) {
+      // Open destabilization: the opposition is funded and the government painted as a pariah.
+      // A government that owns the story holds its standing. One that does not, bleeds.
+      state.rival.power = clamp(state.rival.power + 1, 0, 100);
+      if (!rally) res.legitimacy = clamp(res.legitimacy - 1, 0, 100);
+      applied.push('foreign_destabilization');
+    } else {
+      applied.push('foreign_meddling');
+    }
+
+    // The country splits into those who would resist and those who would accommodate
+    if (slowTick) res.polarization = clamp(res.polarization + 1, 0, 100);
+    applied.push('collaboration_divide');
+
+    // Patriotism: short of open destabilization, defiance with the story on your side builds standing
+    if (rally) {
+      if (!destabilizing && slowTick) res.legitimacy = clamp(res.legitimacy + 1, 0, 100);
+      applied.push('patriotic_rally');
+    }
   }
 
   return applied;

@@ -95,25 +95,53 @@ describe('Instability at the extremes', () => {
     expect(s.resources.legitimacy).toBe(59);
   });
 
-  it('a Colossus short on patience erodes the Generals loyalty', () => {
+  it('a Colossus short on patience erodes the Generals loyalty and divides the country', () => {
     const s = calmState();
     s.colossus.patience = 15;
     const loyalty = s.blocs.military.loyalty;
     const rival = s.rival.power;
-    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling']);
+    s.turn = 3;
+    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling', 'collaboration_divide']);
     expect(s.blocs.military.loyalty).toBe(loyalty - 1);
+    expect(s.resources.polarization).toBe(40);
+    s.turn = 4;
+    processInstabilityTurn(s);
+    expect(s.resources.polarization).toBe(41);
+    // Without the story on your side there is no patriotic dividend
     expect(s.resources.legitimacy).toBe(60);
     expect(s.rival.power).toBe(rival);
   });
 
-  it('a Colossus out of patience also drains legitimacy and backs the Rival', () => {
+  it('standing up to the Colossus builds legitimacy when you own the story', () => {
+    const s = calmState();
+    s.colossus.patience = 15;
+    s.resources.narrative = 55;
+    s.turn = 4;
+    expect(processInstabilityTurn(s)).toEqual(['foreign_meddling', 'collaboration_divide', 'patriotic_rally']);
+    expect(s.resources.legitimacy).toBe(61);
+    expect(s.resources.polarization).toBe(41);
+  });
+
+  it('a Colossus out of patience drains legitimacy and backs the Rival', () => {
     const s = calmState();
     s.colossus.patience = 0;
     const loyalty = s.blocs.military.loyalty;
     const rival = s.rival.power;
-    expect(processInstabilityTurn(s)).toEqual(['foreign_destabilization']);
+    s.turn = 3;
+    expect(processInstabilityTurn(s)).toEqual(['foreign_destabilization', 'collaboration_divide']);
     expect(s.blocs.military.loyalty).toBe(loyalty - 1);
     expect(s.resources.legitimacy).toBe(59);
+    expect(s.rival.power).toBe(rival + 1);
+  });
+
+  it('under open destabilization a patriotic rally holds legitimacy steady but does not raise it', () => {
+    const s = calmState();
+    s.colossus.patience = 0;
+    s.resources.narrative = 60;
+    const rival = s.rival.power;
+    s.turn = 4;
+    expect(processInstabilityTurn(s)).toContain('patriotic_rally');
+    expect(s.resources.legitimacy).toBe(60);
     expect(s.rival.power).toBe(rival + 1);
   });
 
