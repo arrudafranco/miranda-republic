@@ -131,7 +131,7 @@ Eight tracked resources govern the state of Miranda. Each has a defined range.
 | **Capital** | 0-999 | 200 | Political and financial resources available for actions. Replenished by trade income, base income, and certain policies. |
 | **Mobilization** | 0-100 | 40 | The energy of your political base. High mobilization suppresses rival growth. Lost through austerity and backlash. |
 | **Polarization** | 0-100 | 25 | How divided the country is. Affects policy costs, enables/disables certain actions, fuels rival growth, and can trigger backlash against centrist policies. |
-| **Inflation** | 0-30 | 6 | Economic pressure. Above 10, it accelerates rival growth (+2 per 5 points). Above 12, it can trigger the currency crisis event. Above 18, it triggers the banking crisis chain. |
+| **Inflation** | 0-30 | 6 | Economic pressure. Above 10, it accelerates rival growth (+2 per 5 points). Above 12, it can trigger the currency crisis event. Above 18, it triggers the banking crisis chain. At 15+, it also feeds polarization (+1/turn). Has several independent causes (see Inflation Sources). |
 | **Dread** | 0-100 | 15 | Fear of the state. High dread combined with low military loyalty triggers a coup. |
 | **Colossus Alignment** | 0-100 | 65 | How aligned Miranda is with the foreign superpower. Affects trade income, Colossus patience, and bloc loyalties. |
 
@@ -141,6 +141,26 @@ Eight tracked resources govern the state of Miranda. Each has a defined range.
 - **Legitimacy** changes from: congressional majority status (+1/-1 per turn), central bank independence (high CBI gives +1/turn), policies, events, and discovery scandals. Story mode has a legitimacy decay shield that reduces losses by up to 3 per turn.
 - **Narrative** is primarily driven by the narrative phase (cultural bloc loyalties) and modified by policies and events.
 - **Mobilization** is gained through labor, green, and mass-appeal policies. Lost through austerity and backlash.
+- **Inflation** rises from several independent sources (see Inflation Sources below) and falls only through deliberate policy or event choices. It never decays on its own.
+- **Polarization** rises from divisive policies, events, and three slow pressures. It falls through specific policies and through slow civic cooling (see Polarization, Slow Dynamics).
+
+### Inflation Sources (v1.1)
+
+Inflation in Miranda is deliberately multi-causal. No single lever explains it, and no single lever fixes it.
+
+| Source | Effect | Player control |
+|---|---|---|
+| Central bank independence >= 70 | +1 every 2 turns | Indirect (policies that change CBI) |
+| Central bank independence < 30 | +1 per turn | Indirect |
+| Colossus patience at 0 | +2 per turn | Indirect (alignment) |
+| **Imported prices** (trade dependency >= 40) | +1 every 12 turns | Almost none |
+| **Crisis markups** (any crisis chain active) | +1 every 3 turns | Resolve the crisis |
+| **External shocks** (A War Elsewhere, The Hottest Summer on Record) | +1 to +3 per event | Choice shapes the size, not the sign |
+| Existing events and policies | Varies | Direct |
+
+Imported prices and crisis markups live in `src/engine/inflation.ts` (`processInflationTurn`), which runs in the reaction phase after the central bank step.
+
+**Design rationale:** Before v1.1, inflation came almost entirely from central bank settings and a handful of events, so a player who left the bank alone rarely felt price pressure. The new sources reflect the range of explanations found in current economic debate without endorsing one school. Monetary credibility still matters (the central bank rules are unchanged). Supply shocks from war and extreme weather matter. Pricing power during disruption matters (see Weber and Wasner, 2023, on sellers' inflation). Import dependence matters. Notably, public spending is not a blanket inflation trigger. Every available remedy also carries a distributional cost (rate rises hurt the Unions, price caps anger the Landowners), so the player chooses who pays, which is the actual political question.
 
 ---
 
@@ -182,7 +202,7 @@ Each bloc has two sensitivity scores (0-100) that act as multipliers for how str
 
 ## Actions and Policies
 
-The player selects up to two actions per turn from a pool of 46 policies across 8 categories.
+The player selects up to two actions per turn from a pool of 49 policies across 8 categories.
 
 ### Categories
 
@@ -229,7 +249,7 @@ Some policies have additional requirements:
 
 ### Progressive Unlock System
 
-Not all 46 policies are available from Turn 1. 18 "starting" policies are available immediately. The remaining 28 unlock progressively through turn milestones, bloc loyalty thresholds, and resource conditions. This creates a sense of discovery and forward movement, preventing the player from being overwhelmed by a wall of 46 options on Turn 1.
+Not all 49 policies are available from Turn 1. 18 "starting" policies are available immediately. The remaining 31 unlock progressively through turn milestones, bloc loyalty thresholds, and resource conditions. This creates a sense of discovery and forward movement, preventing the player from being overwhelmed by a wall of 49 options on Turn 1.
 
 Each locked policy has an `unlockCondition` with a player-facing `hint` describing (in the game's dark whimsy voice) what must be achieved to unlock it. Locked policies are visible in the UI as dimmed cards with lock icons, showing only their name and hint.
 
@@ -258,7 +278,9 @@ Each locked policy has an `unlockCondition` with a player-facing `hint` describi
 - Military loyalty >= 50 OR Dread >= 40: Black Market Crackdown
 
 **Context-based unlocks:**
-- Polarization >= 40: State Media Blitz
+- Polarization >= 40: State Media Blitz, The Gentlemen's Accord
+- Polarization >= 35: Bread First
+- Clergy loyalty >= 45: Pulpit and Plaza
 - Heralds loyalty >= 45: Whistleblower Hotline
 - Narrative >= 50: Amnesty Program, Paramilitary Disbandment
 
@@ -273,7 +295,7 @@ Backroom policies marked `targetBloc: true` let the player choose which bloc rec
 - **Informal Channels**: +10 loyalty to the chosen bloc (requires Underworld loyalty >= 40).
 - **Blackmail Dossier**: +15 loyalty to the chosen bloc.
 
-### Complete Policy Reference (All 46 Policies)
+### Complete Policy Reference (All 49 Policies)
 
 #### Economic Policies (11)
 
@@ -511,6 +533,26 @@ All backroom policies bypass congressional cost modifiers and sensitivity scalin
 - Blocs: Underworld +10
 - Resources: Mobilization +5, Dread +5, Legitimacy -5
 - Discovery: 30% chance, 3-turn delay. If exposed: Court -20, Heralds -15, Scholars -10, Legitimacy -20, Narrative -15, Rival +12
+
+#### Temporary Depolarization (v1.1)
+
+Three non-centrist policies that lower polarization quickly, each with a different bill attached. None is priced as centrist, so they stay affordable (and free of backlash) when polarization is high, which is exactly when they are needed.
+
+**The Gentlemen's Accord** (Backroom, Cost: 15, Non-centrist, Pol: 30-100, Unlock: Polarization >= 40)
+- Blocs: Banks +10, Landowners +8, Factories +5, Unions -8, Scholars -4
+- Resources: Polarization -8, Narrative -6, Legitimacy -3
+- Delayed: Polarization +1/turn for 6 turns (net effect -2)
+- Discovery: 30% chance, 3-turn delay. If exposed: Heralds -10, Unions -5, Polarization +10, Legitimacy -6, Rival +5
+
+**Pulpit and Plaza** (Rhetoric, Cost: 5, Non-centrist, Pol: 20-100, Unlock: Clergy loyalty >= 45)
+- Blocs: Clergy +10, Main Street +4, Artists -6, Scholars -5
+- Resources: Polarization -5, Narrative -4, Mobilization -3
+- Delayed: Polarization +1/turn for 3 turns (net effect -2)
+
+**Bread First** (Rhetoric, Cost: 5, Non-centrist, Pol: 20-100, Unlock: Polarization >= 35)
+- Blocs: Main Street +5, Unions +3, Artists -5, Scholars -4
+- Resources: Polarization -2, Narrative -3, Mobilization -3
+- Conditional: Inflation < 10 gives a further Polarization -3 (total -5). Inflation >= 15 gives Polarization +2 and Legitimacy -2 (the message rings hollow).
 
 ### Delayed Effects Reference
 
@@ -761,6 +803,32 @@ Only centrist policies can trigger backlash:
 - High polarization streak (> 60 for 4+ turns): Labor cohesion -2/turn
 - Polarization > 80 at game end: "Hollow Republic" ending
 
+### Slow Dynamics (v1.1)
+
+At the end of every turn, `processPolarizationTurn` (in `src/engine/polarization.ts`) applies up to four slow pressures. Polarization stays quick to raise and slow to lower, but it is no longer a one-way street.
+
+| Pressure | Condition | Effect |
+|---|---|---|
+| **Civic cooling** | Calm streak of 2+ turns. A turn is calm when polarization did not rise during it and legitimacy is 60+ (or 45+ when inflation is 5 or lower). | -1 on every second calm turn |
+| **Cost-of-living anger** | Inflation >= 15 | +1 per turn |
+| **Abandoned base** | Average loyalty of Unions, Scholars and Artists < 30 | +1 per turn |
+| **Two Mirandas** | Average loyalty of Banks, Factories and Landowners exceeds the average of Unions and Main Street by 30+ | +1 every other turn |
+
+Any rise in polarization during a turn (from a policy, an event, a rebound, or one of the heating pressures) resets the calm streak. A perfectly calm 48-turn term can therefore cool by roughly 23 points at most, and realistic play far less.
+
+State fields: `polarizationCalmStreak`, `polarizationPressures` (active at end of last turn), `polarizationPressureOnsets` (started last turn). Onsets drive four new briefing vignette pools so the player learns each pressure the first time it appears. The polarization tooltip states the cooling and heating conditions explicitly.
+
+### Routes to Lower Polarization
+
+| Route | Speed | Price |
+|---|---|---|
+| Civic cooling | Slow, permanent | Requires legitimacy and restraint |
+| Centrist reconciliation policies (Reconciliation Forum, Unity Festival, Electoral Reform, Constitutional Convention and others) | Medium, permanent | Cost more and risk backlash as polarization climbs |
+| The Gentlemen's Accord | Fast, mostly temporary | Narrative, legitimacy, worker loyalty, scandal risk, feeds Two Mirandas |
+| Pulpit and Plaza | Fast, partly temporary | Narrative, mobilization, cultural base loyalty, feeds Abandoned Base |
+| Bread First | Fast if prices are under control | Narrative, mobilization, cultural base loyalty. Backfires when inflation is high |
+| The Cut-off Line event (gradual phase-out choice) | One-off | Capital |
+
 ### Policy Availability Windows
 
 Many policies require polarization to be within a specific range. For example:
@@ -848,7 +916,7 @@ Milestones are aspirational goals that give players something to work toward bey
 
 ## Events
 
-Events are narrative moments that introduce external pressures and player choices. There are 53 events in total (6 rival threshold, 1 resource threshold, 5 loyalty threshold, 26 random, and 15 crisis chain stage events).
+Events are narrative moments that introduce external pressures and player choices. There are 55 events in total (6 rival threshold, 1 resource threshold, 5 loyalty threshold, 29 random, and 14 crisis chain stage events).
 
 ### Event Types by Trigger
 
@@ -919,7 +987,7 @@ Non-oneShot events have cooldown periods to prevent rapid repetition. Random-tri
 **The Sermon** (Clergy loyalty < 30) -- Auto-resolve
 - Narrative -3, Main Street -3, Rival +2
 
-### Random Events (26)
+### Random Events (29)
 
 **Currency Crisis** (Weight: 3, Condition: Inflation > 12) -- Player choice
 - "Raise interest rates": Inflation -3, Capital -15, Banks +10, Unions -10, Factories -5
@@ -1022,6 +1090,18 @@ Non-oneShot events have cooldown periods to prevent rapid repetition. Random-tri
 **Labor Day Rally** (Weight: 2, Condition: Union loyalty > 40) -- Player choice
 - "Join the march": Unions +10, Banks -5, Mobilization +5, Narrative +3, Cohesion +5
 - "Send a message of support": Unions +3, Narrative +1
+
+**A War Elsewhere** (Weight: 2, Condition: Turn >= 6) -- Player choice (v1.1)
+- "Stand with the Colossus": Generals +5, Banks +3, Scholars -6, Artists -5, Colossus Alignment +8, Inflation +3, Narrative -4
+- "Declare neutrality": Scholars +4, Unions +3, Banks -4, Colossus Alignment -6, Inflation +2, Narrative +3
+
+**The Hottest Summer on Record** (Weight: 2, Condition: Turn >= 4) -- Player choice (v1.1)
+- "Release grain reserves and cap staple prices": Main Street +5, Unions +3, Landowners -6, Capital -15, Inflation +1
+- "Wait for the rains": Main Street -6, Clergy +3, Inflation +3, Rival +2
+
+**The Cut-off Line** (Weight: 2, Condition: Turn >= 8 and Polarization >= 30) -- Player choice (v1.1)
+- "Replace the cut-off with a gradual phase-out": Main Street +6, Unions +3, Banks -4, Capital -15, Polarization -3
+- "Hold the line": Main Street -7, Banks +3, Polarization +4
 
 ---
 
@@ -1373,7 +1453,7 @@ The header reads "Turn Report, Month {turn}" to anchor the player in the timelin
 
 ### Policy Category Tabs
 
-The 46 policies are organized into 7 categories displayed as a horizontal tab bar above the policy grid. The "All" tab is selected by default. Each tab shows unlocked/total counts (e.g., "Economic (4/11)").
+The 49 policies are organized into 7 categories displayed as a horizontal tab bar above the policy grid. The "All" tab is selected by default. Each tab shows unlocked/total counts (e.g., "Economic (4/11)").
 
 **Categories:** All, Economic (11), Labor (5), Security (6), Diplomatic (4), Institutional (7), Rhetoric (7), Backroom (6).
 
@@ -1386,7 +1466,7 @@ The tab bar follows the ARIA tablist pattern with arrow key navigation, Home/End
 Each resource in the sidebar has a context-aware tooltip that explains its current gameplay impact using actual values from the game state. Examples:
 
 - **Inflation (6/30):** "Economic pain (6/30). Above 10, adds +2 rival growth per 5 points. Above 12, currency crisis can trigger."
-- **Polarization (25/100):** "Societal division (25/100). Currently no cost penalty. At 30+, centrist policies cost 25% more."
+- **Polarization (25/100):** "Societal division (25/100). Currently no cost penalty. At 60+, centrist backlash risk. Cools slowly (1 point every second calm turn) under a trusted government... Heats up with inflation at 15+, an unhappy base, or favoring owners far above workers."
 - **Narrative (45/100):** "Control of the public story (45/100). Below 50, your rival grows faster."
 
 Tooltips update dynamically as values change. They teach mechanics through play rather than tutorials.
@@ -1426,7 +1506,7 @@ On desktop, the three main content sections (Power Blocs, News Log, Choose Actio
 
 **Mobile:** Collapsible sections are not used on mobile, which already separates content into bottom nav tabs.
 
-**Design rationale:** With 14 blocs, a news log, and up to 46 policies, the desktop layout required excessive scrolling. Collapsible sections let players hide sections they don't need, keeping the End Turn button visible. The default is all-expanded so new players see everything.
+**Design rationale:** With 14 blocs, a news log, and up to 49 policies, the desktop layout required excessive scrolling. Collapsible sections let players hide sections they don't need, keeping the End Turn button visible. The default is all-expanded so new players see everything.
 
 ### Locked Policy Toggle
 
@@ -1520,6 +1600,22 @@ As polarization rises, the political center becomes harder to maintain. This mod
 
 At high polarization, centrist policies don't disappear, they become expensive and risky (backlash). But backroom versions of moderate governance remain accessible. This encodes a real dynamic: in highly polarized environments, moderate governance doesn't stop, it just moves underground and becomes corrupt. The player faces a genuine dilemma: pay the enormous political cost of centrist policy in public, or achieve the same outcome through backroom deals and risk scandal.
 
+### Why Polarization Can Cool, Slowly (v1.1)
+
+Before v1.1, only six policies lowered polarization, most of them centrist, and centrist policies get more expensive and riskier as polarization rises. In practice a divided Miranda stayed divided. The asymmetry was intended. The absence of any exit was not.
+
+The patch keeps the asymmetry and adds exits that each say something different about how societies calm down:
+
+- **Civic cooling** rewards being trusted and not feeding the fire. It is slow on purpose and any flare-up resets it.
+- **Material conditions** cut both ways. Severe inflation heats polarization. Low inflation lowers the legitimacy needed for cooling and makes Bread First effective. The claim modelled here is narrow: solving widely shared daily problems makes cultural conflict less able to set the agenda. The game does not claim that any particular kind of program depolarizes by itself.
+- **Program design can divide.** The Cut-off Line event models the sharp eligibility cliff, where households just above and just below a threshold come to resent different targets. The comparative welfare literature debates how targeting and universalism affect political coalitions (see Korpi and Palme, 1998). The game treats it as a design question with a price tag, not a verdict.
+- **Elite pacts** (The Gentlemen's Accord) buy quiet quickly and return most of it. They also widen the gap that drives the Two Mirandas pressure, and they can be exposed.
+- **Coalition broadening** (Pulpit and Plaza, Bread First) works in the short run and spends the goodwill of the most engaged supporters. If the Unions, Scholars and Artists are neglected for long enough, the Abandoned Base pressure pushes polarization back up.
+
+Every fast route therefore feeds one of the slow heating pressures. Temporary calm is available. Durable calm has to be earned through legitimacy, restraint and material conditions. The mechanics describe trade-offs and take no position on which coalition strategy is right.
+
+**Tuning note:** In 500-seed random-play simulations on Standard, average end-of-game polarization moved from 52.9 to 48.5, and the share of games where polarization fell 10+ points from its peak roughly doubled (70 to 135 of 500). Average final inflation moved from 12.1 to 17.2 and rival victories from 6.6% to 10.6%. Random play never fights inflation on purpose, so these figures overstate what a human player will see. Constants live at the top of `polarization.ts` and `inflation.ts` for retuning after playtests.
+
 ### Why Backroom Deals Are Risky But Useful
 
 Backroom policies bypass congressional costs and sensitivity scaling, making them the most direct way to shift bloc loyalty. But the discovery mechanic creates delayed accountability. This models the trade-off between expedient governance and institutional integrity.
@@ -1593,6 +1689,17 @@ The endings collectively pose the question: "What does it mean to govern? And fo
 ---
 
 ## Changelog
+
+### v1.8 (November 2026) -- Balance Patch
+- Slow polarization dynamics: civic cooling plus three heating pressures (cost-of-living anger, abandoned base, Two Mirandas)
+- Structural inflation pressures: imported prices and crisis markups (new module `src/engine/inflation.ts`)
+- 3 new policies with temporary depolarization and rebounds: The Gentlemen's Accord, Pulpit and Plaza, Bread First (49 regular policies, 54 including milestone rewards)
+- 3 new random events: A War Elsewhere, The Hottest Summer on Record, The Cut-off Line (55 events. Earlier entries counted 15 crisis stages, the data has 14)
+- 8 new briefing vignettes that introduce each polarization pressure when it starts
+- Polarization tooltip now states how polarization cools and heats
+- Save migration for the three new state fields
+- 156 tests across 8 suites (26 new in `engine-balance-v11.test.ts`)
+- The unfinished map and policy tree prototype was not released. It is archived on the local branch `archive/map-experiment`
 
 ### v1.7 (February 2026)
 - Presidential Dispatches: multi-paragraph narrative epilogues for all 10 endings

@@ -1234,4 +1234,93 @@ export const EVENT_POOL: GameEvent[] = [
       },
     ],
   },
+  // === v1.1: EXTERNAL PRICE SHOCKS AND THE BENEFIT CLIFF ===
+  {
+    id: 'colossus_foreign_war',
+    name: 'A War Elsewhere',
+    description: 'The Colossus has started a war on the far side of the world. Shipping lanes are closing. Fuel and grain prices are climbing in ports that have never heard of Miranda.',
+    trigger: { type: 'random', weight: 2 },
+    condition: (state) => state.turn >= 6,
+    choices: [
+      {
+        id: 'back_the_colossus',
+        label: 'Stand with the Colossus',
+        tooltip: 'Loyalty is noted. So is the fuel bill, and so are the protests.',
+        outcomeText: 'Your statement of solidarity ran on the Colossus evening news for eleven seconds. At home, the price of diesel ran for much longer.',
+        effects: {
+          blocs: { military: { loyalty: +5 }, finance: { loyalty: +3 }, academy: { loyalty: -6 }, artists: { loyalty: -5 } },
+          resources: { colossusAlignment: +8, inflation: +3, narrative: -4 },
+        },
+      },
+      {
+        id: 'declare_neutrality',
+        label: 'Declare neutrality',
+        tooltip: 'Stay out of it. The prices will find you anyway.',
+        outcomeText: 'Miranda takes no side. The tankers reroute regardless, and the ambassador stops returning calls.',
+        effects: {
+          blocs: { academy: { loyalty: +4 }, labor: { loyalty: +3 }, finance: { loyalty: -4 } },
+          resources: { colossusAlignment: -6, inflation: +2, narrative: +3 },
+        },
+      },
+    ],
+  },
+  {
+    id: 'heat_dome',
+    name: 'The Hottest Summer on Record',
+    description: 'For the third year running, the hottest summer on record. Crops are withering in the valley, the reservoirs are low, and the price of beans has become a national conversation.',
+    trigger: { type: 'random', weight: 2 },
+    condition: (state) => state.turn >= 4,
+    choices: [
+      {
+        id: 'release_reserves',
+        label: 'Release grain reserves and cap staple prices',
+        tooltip: 'Expensive, and the Landowners will hate the cap. Dinner stays affordable.',
+        outcomeText: 'Government trucks roll into the markets at dawn. The Landowners send a strongly worded letter. People eat.',
+        effects: {
+          blocs: { mainStreet: { loyalty: +5 }, labor: { loyalty: +3 }, agri: { loyalty: -6 } },
+          resources: { capital: -15, inflation: +1 },
+        },
+      },
+      {
+        id: 'wait_for_rain',
+        label: 'Wait for the rains',
+        tooltip: 'Costs nothing today. The Clergy will lead the prayers.',
+        outcomeText: 'The rains come late and thin. By then the price of a basic basket has a nickname, and it is your name.',
+        effects: {
+          blocs: { mainStreet: { loyalty: -6 }, clergy: { loyalty: +3 } },
+          resources: { inflation: +3 },
+          rivalPower: +2,
+        },
+      },
+    ],
+  },
+  {
+    id: 'benefit_cliff',
+    name: 'The Cut-off Line',
+    description: 'A family earning one peso over the limit lost its food assistance this month. Their neighbors, one peso under, kept theirs. Both households are now on the radio, and they are not angry at the same people.',
+    trigger: { type: 'random', weight: 2 },
+    condition: (state) => state.turn >= 8 && state.resources.polarization >= 30,
+    choices: [
+      {
+        id: 'phase_out_gradually',
+        label: 'Replace the cut-off with a gradual phase-out',
+        tooltip: 'Costs more. Nobody loses everything over one peso.',
+        outcomeText: 'The new rules take four pages to explain and remove the one line everybody hated. The radio moves on to another grievance.',
+        effects: {
+          blocs: { mainStreet: { loyalty: +6 }, labor: { loyalty: +3 }, finance: { loyalty: -4 } },
+          resources: { capital: -15, polarization: -3 },
+        },
+      },
+      {
+        id: 'hold_the_line',
+        label: 'Hold the line',
+        tooltip: 'Rules are rules. The budget stays tidy. The resentment does not.',
+        outcomeText: 'The limit stands. So does the fence between the two households, which is new.',
+        effects: {
+          blocs: { mainStreet: { loyalty: -7 }, finance: { loyalty: +3 } },
+          resources: { polarization: +4 },
+        },
+      },
+    ],
+  },
 ];

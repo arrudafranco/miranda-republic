@@ -15,7 +15,8 @@ import { processColossusTurn, processCentralBankTurn, calculateTradeIncome } fro
 import { calculateSeatShares, hasFriendlyMajority, getCongressCostMultiplier } from './congress';
 import { applyNarrativePhase } from './narrative';
 import { processLaborCohesionTurn, getEffectiveLaborPower } from './laborCohesion';
-import { getPolarizationCostMultiplier, getBacklashChance, applyBacklash } from './polarization';
+import { getPolarizationCostMultiplier, getBacklashChance, applyBacklash, processPolarizationTurn } from './polarization';
+import { processInflationTurn } from './inflation';
 import { computeRippleEffects } from './interactionMatrix';
 import { selectNewsEvent, resolveEvent, checkEndPhaseEvents } from './events';
 import { EVENT_POOL } from '../data/events';
@@ -82,6 +83,9 @@ function createInitialState(difficulty: Difficulty = 'standard'): GameState {
     centralBankIndependence: 60,
     unionLoyaltyAbove70Streak: 0,
     highPolarizationStreak: 0,
+    polarizationCalmStreak: 0,
+    polarizationPressures: [],
+    polarizationPressureOnsets: [],
     delayedEffects: [],
     pendingDiscoveries: [],
     activeCrises: [],
@@ -450,6 +454,7 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   processRivalTurn(state);
   processColossusTurn(state);
   processCentralBankTurn(state);
+  processInflationTurn(state);
   processDelayedEffects(state);
   processDiscoveryTick(state);
   processCrisisTick(state);
@@ -469,6 +474,7 @@ function submitActionsImpl(state: GameState, actions: ActionChoice[]): void {
   // End phase
   state.phase = 'end';
   processLaborCohesionTurn(state);
+  processPolarizationTurn(state);
 
   // Congressional legitimacy effect
   const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
@@ -625,6 +631,7 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   processRivalTurn(state);
   processColossusTurn(state);
   processCentralBankTurn(state);
+  processInflationTurn(state);
   processDelayedEffects(state);
   processDiscoveryTick(state);
   processCrisisTick(state);
@@ -664,6 +671,7 @@ function processFullTurnImpl(state: GameState, actions: ActionChoice[]): void {
   // Phase 7: END
   state.phase = 'end';
   processLaborCohesionTurn(state);
+  processPolarizationTurn(state);
 
   // Congressional legitimacy effect
   const hasSeats = ALL_BLOC_IDS.some(id => (state.congress.seatShares[id] ?? 0) > 0);
@@ -881,6 +889,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (saved.centralBankIndependence === undefined) saved.centralBankIndependence = 60;
       if (saved.unionLoyaltyAbove70Streak === undefined) saved.unionLoyaltyAbove70Streak = 0;
       if (saved.highPolarizationStreak === undefined) saved.highPolarizationStreak = 0;
+      if (saved.polarizationCalmStreak === undefined) saved.polarizationCalmStreak = 0;
+      if (!saved.polarizationPressures) saved.polarizationPressures = [];
+      if (!saved.polarizationPressureOnsets) saved.polarizationPressureOnsets = [];
       if (saved.congress && saved.congress.friendlyMajority === undefined) saved.congress.friendlyMajority = false;
       if (saved.rival && saved.rival.lastAction === undefined) saved.rival.lastAction = '';
       if (saved.rival && saved.rival.powerDelta === undefined) saved.rival.powerDelta = 0;

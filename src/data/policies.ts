@@ -1269,4 +1269,106 @@ export const POLICIES: Policy[] = [
       },
     },
   },
+  // === v1.1: TEMPORARY DEPOLARIZATION (each one buys calm at a price) ===
+  {
+    id: 'gentlemens_accord',
+    name: 'The Gentlemen\'s Accord',
+    tooltip: 'A private dinner with the Banks and the Landowners. They call off the op-eds. You call off the reforms. The calm lasts until someone finds the menu.',
+    category: 'backroom',
+    minPolarization: 30,
+    maxPolarization: 100,
+    capitalCost: 15,
+    centrist: false,
+    unlockCondition: { type: 'resource', resource: 'polarization', resourceMin: 40, hint: 'When the country is divided enough, the powerful start offering truces. Needs polarization 40+.' },
+    effects: {
+      blocs: {
+        finance:  { loyalty: +10 },
+        agri:     { loyalty: +8 },
+        industry: { loyalty: +5 },
+        labor:    { loyalty: -8 },
+        academy:  { loyalty: -4 },
+      },
+      resources: {
+        polarization: -8,
+        narrative: -6,
+        legitimacy: -3,
+      },
+      // The truce frays. Most of the calm comes back as resentment.
+      delayed: {
+        turns: 6,
+        perTurn: { polarization: +1 },
+      },
+      discovery: {
+        chance: 0.3,
+        delay: 3,
+        effects: {
+          blocs: { media: { loyalty: -10 }, labor: { loyalty: -5 } },
+          resources: { polarization: +10, legitimacy: -6 },
+          rivalPower: +5,
+        },
+      },
+    },
+  },
+  {
+    id: 'pulpit_and_plaza',
+    name: 'Pulpit and Plaza',
+    tooltip: 'Stand beside the bishops and talk about shared values. The pews approve. Some of your oldest allies watch from the plaza and say nothing, loudly.',
+    category: 'rhetoric',
+    minPolarization: 20,
+    maxPolarization: 100,
+    capitalCost: 5,
+    centrist: false,
+    unlockCondition: { type: 'bloc_loyalty', blocId: 'clergy', loyaltyMin: 45, hint: 'The Clergy must be willing to share a stage with you. Needs Clergy loyalty 45+.' },
+    effects: {
+      blocs: {
+        clergy:     { loyalty: +10 },
+        mainStreet: { loyalty: +4 },
+        artists:    { loyalty: -6 },
+        academy:    { loyalty: -5 },
+      },
+      resources: {
+        polarization: -5,
+        narrative: -4,
+        mobilization: -3,
+      },
+      delayed: {
+        turns: 3,
+        perTurn: { polarization: +1 },
+      },
+    },
+  },
+  {
+    id: 'bread_first',
+    name: 'Bread First',
+    tooltip: 'Talk about prices, wages and buses. Nothing else, for a while. It works when the bread is actually cheaper. It also tells some loyal friends to wait their turn.',
+    category: 'rhetoric',
+    minPolarization: 20,
+    maxPolarization: 100,
+    capitalCost: 5,
+    centrist: false,
+    unlockCondition: { type: 'resource', resource: 'polarization', resourceMin: 35, hint: 'Once the shouting gets loud enough, changing the subject becomes a strategy. Needs polarization 35+.' },
+    effects: {
+      blocs: {
+        mainStreet: { loyalty: +5 },
+        labor:      { loyalty: +3 },
+        artists:    { loyalty: -5 },
+        academy:    { loyalty: -4 },
+      },
+      resources: {
+        polarization: -2,
+        narrative: -3,
+        mobilization: -3,
+      },
+    },
+    // The message only lands if daily life backs it up.
+    conditionalEffects: (state) => {
+      if (state.resources.inflation < 10) {
+        return { resources: { polarization: -3 } };
+      }
+      if (state.resources.inflation >= 15) {
+        return { resources: { polarization: +2, legitimacy: -2 } };
+      }
+      return {};
+    },
+  },
 ];

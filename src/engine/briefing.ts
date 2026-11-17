@@ -323,6 +323,24 @@ const POLARIZATION_BELOW_30 = [
   'A debate between opposition and government supporters ended with handshakes. A small thing. It matters.',
 ];
 
+// Slow polarization pressures (v1.1). Each fires when the pressure starts.
+const POLARIZATION_COOLING = [
+  'A quiet month. The talk shows ran out of outrage and aired a cooking segment. Tempers cool when the government is trusted and nobody feeds the fire.',
+  'Your pollster reports that people are arguing about football again. A trusted government and a calm stretch are doing slow, patient work.',
+];
+const POLARIZATION_COST_OF_LIVING = [
+  'The bread line and the fuel line met at the corner and started blaming each other. Prices this high turn neighbors into factions.',
+  'Every dinner table in Miranda is having the same argument about whose fault the prices are. It will get louder until they come down.',
+];
+const POLARIZATION_ABANDONED_BASE = [
+  'The Unions, the Scholars and the Artists used to march for you. This week they marched anyway. Your name was on the signs, and not kindly.',
+  'The people who once knocked on doors for you now feel taken for granted. An angry base does not go home. It picks a fight.',
+];
+const POLARIZATION_TWO_MIRANDAS = [
+  'The Banks threw a gala. Across the avenue, Main Street held a candlelight vigil for the rent. People have noticed who this government keeps happy.',
+  'Graffiti near the port reads "Two Mirandas, one bill." The gap between how owners and workers are treated is becoming a cause of its own.',
+];
+
 const MOBILIZATION_ABOVE_70 = [
   'Rally attendance exceeded expectations. The organizers ordered more chairs.',
   'Your volunteer coordinators requested training for new recruits. "We can\'t keep up," they said.',
@@ -450,6 +468,21 @@ export function generateBriefingItems(state: GameState): { items: BriefingItem[]
   }
   if (res.capital < 20 && prev.capital >= 20) {
     candidates.push({ type: 'resource', text: randomChoice(CAPITAL_BELOW_20), tone: 'negative', priority: 68 });
+  }
+
+  // 5a. Slow polarization pressures starting this turn
+  const onsets = state.polarizationPressureOnsets ?? [];
+  if (onsets.includes('cost_of_living')) {
+    candidates.push({ type: 'resource', text: randomChoice(POLARIZATION_COST_OF_LIVING), tone: 'negative', priority: 73 });
+  }
+  if (onsets.includes('abandoned_base')) {
+    candidates.push({ type: 'resource', text: randomChoice(POLARIZATION_ABANDONED_BASE), tone: 'negative', priority: 73 });
+  }
+  if (onsets.includes('two_mirandas')) {
+    candidates.push({ type: 'resource', text: randomChoice(POLARIZATION_TWO_MIRANDAS), tone: 'negative', priority: 71 });
+  }
+  if (onsets.includes('cooling')) {
+    candidates.push({ type: 'resource', text: randomChoice(POLARIZATION_COOLING), tone: 'positive', priority: 66 });
   }
 
   // 5b. Resource threshold crossings (positive) - with dedup via seenPositiveTriggers

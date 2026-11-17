@@ -5,6 +5,9 @@ import type { RivalState } from './rival';
 import type { ActiveDelayedEffect, ActionChoice, DiscoveryEffect } from './actions';
 import type { GameEvent } from './events';
 
+/** Slow end-of-turn forces acting on polarization (see engine/polarization.ts). */
+export type PolarizationPressure = 'cooling' | 'cost_of_living' | 'abandoned_base' | 'two_mirandas';
+
 export type Difficulty = 'story' | 'standard' | 'crisis';
 
 export interface DifficultyConfig {
@@ -124,6 +127,9 @@ export interface GameState {
   // Streak trackers
   unionLoyaltyAbove70Streak: number;    // Consecutive turns with union loyalty > 70
   highPolarizationStreak: number;       // Consecutive turns with polarization > 60
+  polarizationCalmStreak: number;       // Consecutive calm turns (no rise, legitimate government)
+  polarizationPressures: PolarizationPressure[];      // Slow pressures active at end of last turn
+  polarizationPressureOnsets: PolarizationPressure[]; // Pressures that started last turn (for briefings)
 
   // Active effects
   delayedEffects: ActiveDelayedEffect[];

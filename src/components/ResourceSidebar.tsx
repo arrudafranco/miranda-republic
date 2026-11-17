@@ -99,7 +99,7 @@ function getDynamicTooltip(
       } else {
         costNote = 'Centrist policies cost 100% more with 40% backlash risk. Non-centrist policies get cheaper.';
       }
-      return `Societal division (${value}/100). ${costNote} At 60+, centrist backlash risk.`;
+      return `Societal division (${value}/100). ${costNote} At 60+, centrist backlash risk. Cools slowly (1 point every second calm turn) under a trusted government (legitimacy 60+, or 45+ with inflation at 5 or less). Heats up with inflation at 15+, an unhappy base (Unions, Scholars, Artists), or favoring owners far above workers.`;
     }
     case 'inflation': {
       let inflNote: string;
